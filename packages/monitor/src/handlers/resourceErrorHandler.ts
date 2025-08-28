@@ -8,31 +8,31 @@ export class ResourceErrorHandler {
     this.init();
   }
 
-  // 初始化资源错误捕获
+  // Initialize resource error capture
   private init() {
-    // 监听资源加载错误（在捕获阶段）
+    // Listen for resource loading errors (in capture phase)
     window.addEventListener('error', this.handleResourceError, true);
   }
 
-  // 处理资源加载错误
+  // Handle resource loading errors
   private handleResourceError = (event: ErrorEvent) => {
     const target = event.target || event.srcElement;
     
-    // 只处理资源加载错误，不处理脚本错误
+    // Only handle resource loading errors, not script errors
     if (target && target !== window && (target as any).src) {
       const element = target as HTMLElement & { src: string; tagName: string };
       
-      // 获取资源类型
+      // Get resource type
       const resourceType = this.getResourceType(element);
       
       const errorInfo: ErrorInfo = {
         type: MonitorErrorType.RESOURCE,
-        message: `${resourceType} 加载失败: ${element.src}`,
+        message: `${resourceType} failed to load: ${element.src}`,
         filename: element.src,
         timestamp: Date.now(),
         url: window.location.href,
         userAgent: navigator.userAgent,
-        // 添加额外的资源信息
+        // Add additional resource information
         ...this.getResourceDetails(element)
       };
       
@@ -40,7 +40,7 @@ export class ResourceErrorHandler {
     }
   };
 
-  // 获取资源类型
+  // Get resource type
   private getResourceType(element: HTMLElement): string {
     const tagName = element.tagName.toLowerCase();
     
@@ -67,17 +67,17 @@ export class ResourceErrorHandler {
     }
   }
 
-  // 获取资源详细信息
+  // Get resource details
   private getResourceDetails(element: HTMLElement) {
     const details: Record<string, any> = {
       tagName: element.tagName.toLowerCase(),
     };
 
-    // 获取元素的 ID 和 class
+    // Get element ID and class
     if (element.id) details.elementId = element.id;
     if (element.className) details.elementClass = element.className;
 
-    // 根据元素类型获取特定信息
+    // Get specific information based on element type
     if (element.tagName.toLowerCase() === 'img') {
       const img = element as HTMLImageElement;
       details.naturalWidth = img.naturalWidth;
@@ -95,13 +95,13 @@ export class ResourceErrorHandler {
       const script = element as HTMLScriptElement;
       details.async = script.async;
       details.defer = script.defer;
-      details.scriptType = script.type; // 重命名避免冲突
+      details.scriptType = script.type; // Renamed to avoid conflicts
     }
 
     return details;
   }
 
-  // 销毁监听器
+  // Destroy listener
   destroy() {
     window.removeEventListener('error', this.handleResourceError, true);
   }

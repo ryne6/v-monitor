@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import path from 'path'
 import { spawn } from 'child_process'
 
-// 启动 Express 服务器
+// Start Express server
 function startExpressServer() {
   console.log('🚀 Starting Express test server...')
   
@@ -16,7 +16,7 @@ function startExpressServer() {
     console.error('❌ Failed to start Express server:', err)
   })
   
-  // 处理进程退出
+  // Handle process exit
   process.on('SIGINT', () => {
     console.log('\n🛑 Shutting down servers...')
     server.kill('SIGINT')
@@ -43,7 +43,7 @@ export default defineConfig({
     {
       name: 'express-server',
       buildStart() {
-        // 只在开发模式下启动 Express 服务器
+        // Only start Express server in development mode
         if (process.env.NODE_ENV !== 'production') {
           startExpressServer()
         }

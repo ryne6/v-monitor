@@ -1,23 +1,23 @@
 // @ts-nocheck
 import { Monitor, type ErrorInfo } from '~/monitor/main';
 
-// 初始化监控器
+// Initialize monitor
 const monitor = new Monitor();
 
-// 错误日志容器
+// Error log container
 const errorLogContainer = document.getElementById('errorLog')!;
 
-// 注册错误处理器
+// Register error handler
 monitor.onError((error: ErrorInfo) => {
-  console.log('捕获到错误:', error);
+  console.log('Error captured:', error);
   displayError(error);
 });
 
-// 显示错误信息
+// Display error information
 function displayError(error: ErrorInfo) {
-  // 清空初始状态
+  // Clear initial state
   if (errorLogContainer.children.length === 1 && 
-      errorLogContainer.children[0].textContent?.includes('等待错误触发')) {
+      errorLogContainer.children[0].textContent?.includes('Waiting for errors')) {
     errorLogContainer.innerHTML = '';
   }
 
@@ -26,37 +26,37 @@ function displayError(error: ErrorInfo) {
   
   const timestamp = new Date(error.timestamp).toLocaleTimeString();
   
-  let metaInfo = `时间: ${timestamp}`;
+  let metaInfo = `Time: ${timestamp}`;
   
-  // 根据错误类型显示不同的元信息
+  // Display different meta information based on error type
   if (error.type === 'network') {
-    metaInfo += ` | 方法: ${error.requestMethod} | 状态: ${error.responseStatus} | 耗时: ${error.requestDuration}ms`;
+    metaInfo += ` | Method: ${error.requestMethod} | Status: ${error.responseStatus} | Duration: ${error.requestDuration}ms`;
     if (error.requestQuery) metaInfo += ` | Query: ${error.requestQuery}`;
   } else {
-    if (error.filename) metaInfo += ` | 文件: ${error.filename}`;
-    if (error.line) metaInfo += ` | 行: ${error.line}`;
-    if (error.column) metaInfo += ` | 列: ${error.column}`;
+    if (error.filename) metaInfo += ` | File: ${error.filename}`;
+    if (error.line) metaInfo += ` | Line: ${error.line}`;
+    if (error.column) metaInfo += ` | Column: ${error.column}`;
   }
 
   let additionalInfo = '';
   if (error.type === 'network') {
-    // 请求信息
+    // Request information
     if (error.requestBody) {
-      additionalInfo += `<div class="error-meta" style="margin-top: 0.5rem; font-size: 0.75rem;"><strong>请求 Body:</strong> <pre style="margin: 0.25rem 0; background: rgba(0,0,0,0.1); padding: 0.5rem; border-radius: 4px; overflow-x: auto;">${JSON.stringify(error.requestBody, null, 2)}</pre></div>`;
+      additionalInfo += `<div class="error-meta" style="margin-top: 0.5rem; font-size: 0.75rem;"><strong>Request Body:</strong> <pre style="margin: 0.25rem 0; background: rgba(0,0,0,0.1); padding: 0.5rem; border-radius: 4px; overflow-x: auto;">${JSON.stringify(error.requestBody, null, 2)}</pre></div>`;
     }
     if (error.requestHeaders && Object.keys(error.requestHeaders).length > 0) {
-      additionalInfo += `<div class="error-meta" style="margin-top: 0.25rem; font-size: 0.75rem;"><strong>请求 Headers:</strong> <pre style="margin: 0.25rem 0; background: rgba(0,0,0,0.1); padding: 0.5rem; border-radius: 4px; overflow-x: auto;">${JSON.stringify(error.requestHeaders, null, 2)}</pre></div>`;
+      additionalInfo += `<div class="error-meta" style="margin-top: 0.25rem; font-size: 0.75rem;"><strong>Request Headers:</strong> <pre style="margin: 0.25rem 0; background: rgba(0,0,0,0.1); padding: 0.5rem; border-radius: 4px; overflow-x: auto;">${JSON.stringify(error.requestHeaders, null, 2)}</pre></div>`;
     }
     
-    // 响应信息
+    // Response information
     if (error.responseBody) {
       const responseBodyStr = typeof error.responseBody === 'string' 
         ? error.responseBody 
         : JSON.stringify(error.responseBody, null, 2);
-      additionalInfo += `<div class="error-meta" style="margin-top: 0.25rem; font-size: 0.75rem;"><strong>响应 Body:</strong> <pre style="margin: 0.25rem 0; background: rgba(255,0,0,0.1); padding: 0.5rem; border-radius: 4px; overflow-x: auto;">${responseBodyStr}</pre></div>`;
+      additionalInfo += `<div class="error-meta" style="margin-top: 0.25rem; font-size: 0.75rem;"><strong>Response Body:</strong> <pre style="margin: 0.25rem 0; background: rgba(255,0,0,0.1); padding: 0.5rem; border-radius: 4px; overflow-x: auto;">${responseBodyStr}</pre></div>`;
     }
     if (error.responseHeaders && Object.keys(error.responseHeaders).length > 0) {
-      additionalInfo += `<div class="error-meta" style="margin-top: 0.25rem; font-size: 0.75rem;"><strong>响应 Headers:</strong> <pre style="margin: 0.25rem 0; background: rgba(255,0,0,0.1); padding: 0.5rem; border-radius: 4px; overflow-x: auto;">${JSON.stringify(error.responseHeaders, null, 2)}</pre></div>`;
+      additionalInfo += `<div class="error-meta" style="margin-top: 0.25rem; font-size: 0.75rem;"><strong>Response Headers:</strong> <pre style="margin: 0.25rem 0; background: rgba(255,0,0,0.1); padding: 0.5rem; border-radius: 4px; overflow-x: auto;">${JSON.stringify(error.responseHeaders, null, 2)}</pre></div>`;
     }
   }
 
@@ -70,41 +70,41 @@ function displayError(error: ErrorInfo) {
   
   errorLogContainer.prepend(errorElement);
   
-  // 限制显示数量
+  // Limit display count
   if (errorLogContainer.children.length > 10) {
     errorLogContainer.removeChild(errorLogContainer.lastChild!);
   }
 }
 
-// 错误触发函数
+// Error trigger functions
 (window as any).triggerSyntaxError = () => {
-  eval('const a = ;'); // 语法错误
+  eval('const a = ;'); // Syntax error
 };
 
 (window as any).triggerReferenceError = () => {
-  console.log(undefinedVariable); // 引用错误
+  console.log(undefinedVariable); // Reference error
 };
 
 (window as any).triggerTypeError = () => {
   const obj = null;
-  obj.someMethod(); // 类型错误
+  obj.someMethod(); // Type error
 };
 
 (window as any).triggerPromiseError = () => {
-  Promise.reject(new Error('这是一个 Promise 拒绝错误'));
+  Promise.reject(new Error('This is a Promise rejection error'));
 };
 
 (window as any).triggerAsyncError = async () => {
   await new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('异步操作失败')), 100);
+    setTimeout(() => reject(new Error('Async operation failed')), 100);
   });
 };
 
-// 资源错误触发函数
+// Resource error trigger functions
 (window as any).triggerImageError = () => {
   const img = document.createElement('img');
   img.src = 'https://non-existent-domain-12345.com/image.jpg';
-  img.alt = '测试图片';
+  img.alt = 'Test image';
   img.style.display = 'none';
   document.body.appendChild(img);
 };
@@ -131,7 +131,7 @@ function displayError(error: ErrorInfo) {
   document.body.appendChild(audio);
 };
 
-// 网络请求错误触发函数
+// Network request error trigger functions
 (window as any).triggerFetch404 = async () => {
   try {
     const response = await fetch('http://localhost:3001/api/not-found');
@@ -168,11 +168,11 @@ function displayError(error: ErrorInfo) {
 (window as any).triggerXHRTimeout = () => {
   const xhr = new XMLHttpRequest();
   xhr.open('GET', 'http://localhost:3001/api/slow', true);
-  xhr.timeout = 1000; // 1秒超时，但接口需要3秒
+  xhr.timeout = 1000; // 1 second timeout, but the API needs 3 seconds
   xhr.send();
 };
 
-// 额外的测试函数
+// Additional test functions
 (window as any).triggerFetchSuccess = async () => {
   try {
     const response = await fetch('http://localhost:3001/api/success?userId=123&action=test');
@@ -193,7 +193,7 @@ function displayError(error: ErrorInfo) {
   }
 };
 
-// POST 请求测试 (带 body)
+// POST request test (with body)
 (window as any).triggerPostError = async () => {
   try {
     const response = await fetch('http://localhost:3001/api/users', {
@@ -215,5 +215,5 @@ function displayError(error: ErrorInfo) {
   }
 };
 
-console.log('Monitor Playground 已启动！');
-console.log('🔧 Express 测试服务器运行在: http://localhost:3001');
+console.log('Monitor Playground started!');
+console.log('🔧 Express test server running at: http://localhost:3001');

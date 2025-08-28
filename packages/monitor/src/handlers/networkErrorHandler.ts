@@ -1,45 +1,108 @@
-import { MonitorErrorType, type ErrorInfo } from '../types';
+import { MonitorErrorType, type ErrorInfo, type MonitorConfig } from '../types';
 
 export class NetworkErrorHandler {
   private errorCallback: (error: ErrorInfo) => void;
   private originalFetch: typeof fetch;
   private originalXMLHttpRequest: typeof XMLHttpRequest;
+  private shouldTrackRequest: (url: string) => boolean;
+  private config: MonitorConfig['network'];
 
-  constructor(errorCallback: (error: ErrorInfo) => void) {
+  constructor(
+    errorCallback: (error: ErrorInfo) => void,
+    config?: MonitorConfig['network']
+  ) {
     this.errorCallback = errorCallback;
+    this.config = {
+      enabled: true,
+      monitorFetch: true,
+      monitorXHR: true,
+      excludePatterns: [],
+      maxResponseLength: 1000,
+      detailed: true,
+      ...config,
+    };
+
     this.originalFetch = window.fetch;
     this.originalXMLHttpRequest = window.XMLHttpRequest;
-    this.init();
+
+    // Create request filter based on configuration
+    this.shouldTrackRequest = this.createRequestFilter();
+
+    if (this.config.enabled) {
+      this.init();
+    }
   }
 
-  // 初始化网络错误捕获
+  // Create request filter based on configuration
+  private createRequestFilter(): (url: string) => boolean {
+    const patterns = this.config?.excludePatterns || [];
+
+    return (url: string) => {
+      // If no exclusion patterns, monitor all requests
+      if (patterns.length === 0) {
+        return true;
+      }
+
+      // Check if URL matches any exclusion pattern
+      for (const pattern of patterns) {
+        if (typeof pattern === 'string') {
+          if (url.includes(pattern)) {
+            return false;
+          }
+        } else if (pattern instanceof RegExp) {
+          if (pattern.test(url)) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    };
+  }
+
+  // Initialize network error capture
   private init() {
-    this.interceptFetch();
-    this.interceptXMLHttpRequest();
+    if (this.config?.monitorFetch) {
+      this.interceptFetch();
+    }
+    if (this.config?.monitorXHR) {
+      this.interceptXMLHttpRequest();
+    }
   }
 
-  // 拦截 fetch 请求
+  // Intercept fetch requests
   private interceptFetch() {
     const originalFetch = this.originalFetch;
     const self = this;
 
-    window.fetch = async function(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-      const startTime = Date.now();
+    window.fetch = async function (
+      input: RequestInfo | URL,
+      init?: RequestInit
+    ): Promise<Response> {
       const url = typeof input === 'string' ? input : input.toString();
+
+      // Filter requests that don't need monitoring
+      if (!self.shouldTrackRequest(url)) {
+        return originalFetch.call(window, input, init);
+      }
+
+      const startTime = Date.now();
       const method = init?.method || 'GET';
 
-      // 提取请求信息
+      // Extract request details
       const requestDetails = self.extractRequestDetails(url, init);
 
       try {
         const response = await originalFetch.call(window, input, init);
         const duration = Date.now() - startTime;
 
-        // 检查 HTTP 状态错误
+        // Check HTTP status errors
         if (!response.ok) {
-          // 尝试读取响应内容
-          const responseDetails = await self.extractResponseDetails(response.clone());
-          
+          // Try to read response content
+          const responseDetails = await self.extractResponseDetails(
+            response.clone()
+          );
+
           self.reportNetworkError({
             url,
             method,
@@ -49,15 +112,15 @@ export class NetworkErrorHandler {
             type: 'fetch',
             message: `HTTP ${response.status}: ${response.statusText}`,
             ...requestDetails,
-            ...responseDetails
+            ...responseDetails,
           });
         }
 
         return response;
       } catch (error) {
         const duration = Date.now() - startTime;
-        
-        // 网络级别错误（连接失败、超时等）
+
+        // Network level errors (connection failure, timeout, etc.)
         self.reportNetworkError({
           url,
           method,
@@ -65,41 +128,55 @@ export class NetworkErrorHandler {
           statusText: 'Network Error',
           duration,
           type: 'fetch',
-          message: error instanceof Error ? error.message : 'Network request failed',
+          message:
+            error instanceof Error ? error.message : 'Network request failed',
           error: error instanceof Error ? error : undefined,
-          ...requestDetails
+          ...requestDetails,
         });
 
-        throw error; // 重新抛出错误，保持原有行为
+        throw error; // Re-throw error to maintain original behavior
       }
     };
   }
 
-  // 拦截 XMLHttpRequest
+  // Intercept XMLHttpRequest
   private interceptXMLHttpRequest() {
     const originalOpen = XMLHttpRequest.prototype.open;
     const originalSend = XMLHttpRequest.prototype.send;
-    const networkHandler = this; // 保存 this 引用
+    const networkHandler = this; // Save this reference
 
-    XMLHttpRequest.prototype.open = function(method: string, url: string | URL, async?: boolean, user?: string | null, password?: string | null) {
-      // 保存请求信息
-      (this as any)._monitor = {
-        method,
-        url: url.toString(),
-        startTime: 0,
-        requestDetails: networkHandler.extractXHRRequestDetails(url.toString())
-      };
+    XMLHttpRequest.prototype.open = function (
+      method: string,
+      url: string | URL,
+      async?: boolean,
+      user?: string | null,
+      password?: string | null
+    ) {
+      const urlString = url.toString();
+
+      // Filter requests that don't need monitoring
+      if (networkHandler.shouldTrackRequest(urlString)) {
+        // Save request information
+        (this as any)._monitor = {
+          method,
+          url: urlString,
+          startTime: 0,
+          requestDetails: networkHandler.extractXHRRequestDetails(urlString),
+        };
+      }
 
       return originalOpen.call(this, method, url, !!async, user, password);
     };
 
-    XMLHttpRequest.prototype.send = function(body?: Document | XMLHttpRequestBodyInit | null) {
+    XMLHttpRequest.prototype.send = function (
+      body?: Document | XMLHttpRequestBodyInit | null
+    ) {
       const monitor = (this as any)._monitor;
       if (monitor) {
         monitor.startTime = Date.now();
         monitor.requestDetails.requestBody = networkHandler.serializeBody(body);
 
-        // 监听各种事件
+        // Listen to various events
         this.addEventListener('error', () => {
           const duration = Date.now() - monitor.startTime;
           networkHandler.reportNetworkError({
@@ -110,7 +187,7 @@ export class NetworkErrorHandler {
             duration,
             type: 'xhr',
             message: 'XMLHttpRequest failed',
-            ...monitor.requestDetails
+            ...monitor.requestDetails,
           });
         });
 
@@ -124,25 +201,28 @@ export class NetworkErrorHandler {
             duration,
             type: 'xhr',
             message: 'XMLHttpRequest timeout',
-            ...monitor.requestDetails
+            ...monitor.requestDetails,
           });
         });
 
         this.addEventListener('load', () => {
           const duration = Date.now() - monitor.startTime;
-          
-          // 检查 HTTP 状态错误
+
+          // Check HTTP status errors
           if (this.status >= 400) {
-            // 尝试获取 XHR 响应内容
+            // Try to get XHR response content
             let responseBody: any;
             try {
               const contentType = this.getResponseHeader('content-type') || '';
               if (contentType.includes('application/json')) {
                 responseBody = JSON.parse(this.responseText);
               } else if (contentType.includes('text/')) {
-                responseBody = this.responseText.length > 1000 
-                  ? this.responseText.substring(0, 1000) + '...' 
-                  : this.responseText;
+                const maxLength =
+                  networkHandler.config?.maxResponseLength || 1000;
+                responseBody =
+                  this.responseText.length > maxLength
+                    ? this.responseText.substring(0, maxLength) + '...'
+                    : this.responseText;
               } else {
                 responseBody = `[${contentType || 'Unknown'}: ${this.responseText.length} chars]`;
               }
@@ -150,7 +230,7 @@ export class NetworkErrorHandler {
               responseBody = this.responseText || '[No response body]';
             }
 
-            // 提取响应头 (XHR 只能获取部分响应头)
+            // Extract response headers (XHR can only get partial response headers)
             const responseHeaders: Record<string, string> = {};
             try {
               const headerString = this.getAllResponseHeaders();
@@ -163,7 +243,7 @@ export class NetworkErrorHandler {
                 });
               }
             } catch {
-              // 忽略响应头提取错误
+              // Ignore response header extraction errors
             }
 
             networkHandler.reportNetworkError({
@@ -176,7 +256,7 @@ export class NetworkErrorHandler {
               message: `HTTP ${this.status}: ${this.statusText}`,
               ...monitor.requestDetails,
               responseBody,
-              responseHeaders
+              responseHeaders,
             });
           }
         });
@@ -186,32 +266,32 @@ export class NetworkErrorHandler {
     };
   }
 
-  // 提取 fetch 请求详情
+  // Extract fetch request details
   private extractRequestDetails(url: string, init?: RequestInit) {
     const urlObj = new URL(url, window.location.href);
-    
+
     return {
       requestQuery: urlObj.search,
       requestBody: this.serializeBody(init?.body),
-      requestHeaders: this.extractHeaders(init?.headers)
+      requestHeaders: this.extractHeaders(init?.headers),
     };
   }
 
-  // 提取 XHR 请求详情
+  // Extract XHR request details
   private extractXHRRequestDetails(url: string) {
     const urlObj = new URL(url, window.location.href);
-    
+
     return {
       requestQuery: urlObj.search,
-      requestBody: undefined, // 会在 send 时设置
-      requestHeaders: {} // XHR 的 headers 较难获取，暂时留空
+      requestBody: undefined, // Will be set in send
+      requestHeaders: {}, // XHR headers are difficult to get, leave empty for now
     };
   }
 
-  // 序列化请求体
+  // Serialize request body
   private serializeBody(body: any): any {
     if (!body) return undefined;
-    
+
     try {
       if (typeof body === 'string') return body;
       if (body instanceof FormData) {
@@ -236,10 +316,10 @@ export class NetworkErrorHandler {
     }
   }
 
-  // 提取请求头
+  // Extract request headers
   private extractHeaders(headers?: HeadersInit): Record<string, string> {
     if (!headers) return {};
-    
+
     try {
       if (headers instanceof Headers) {
         const obj: Record<string, string> = {};
@@ -261,19 +341,19 @@ export class NetworkErrorHandler {
     }
   }
 
-  // 提取响应详情
+  // Extract response details
   private async extractResponseDetails(response: Response) {
     try {
-      // 提取响应头
+      // Extract response headers
       const responseHeaders: Record<string, string> = {};
       response.headers.forEach((value, key) => {
         responseHeaders[key] = value;
       });
 
-      // 尝试读取响应体
+      // Try to read response body
       let responseBody: any;
       const contentType = response.headers.get('content-type') || '';
-      
+
       if (contentType.includes('application/json')) {
         try {
           responseBody = await response.json();
@@ -283,7 +363,11 @@ export class NetworkErrorHandler {
       } else if (contentType.includes('text/')) {
         try {
           const text = await response.text();
-          responseBody = text.length > 1000 ? text.substring(0, 1000) + '...' : text;
+          const maxLength = this.config?.maxResponseLength || 1000;
+          responseBody =
+            text.length > maxLength
+              ? text.substring(0, maxLength) + '...'
+              : text;
         } catch {
           responseBody = '[Unable to read text response]';
         }
@@ -293,17 +377,16 @@ export class NetworkErrorHandler {
 
       return {
         responseBody,
-        responseHeaders
+        responseHeaders,
       };
     } catch (error) {
       return {
         responseBody: '[Unable to extract response]',
-        responseHeaders: {}
+        responseHeaders: {},
       };
     }
   }
 
-  // 将 reportNetworkError 设为公开方法，供 XMLHttpRequest 事件处理器调用
   public reportNetworkError(details: {
     url: string;
     method: string;
@@ -326,7 +409,7 @@ export class NetworkErrorHandler {
       timestamp: Date.now(),
       url: window.location.href,
       userAgent: navigator.userAgent,
-      // 网络请求特有信息
+      // Network request specific information
       requestMethod: details.method,
       requestUrl: details.url,
       responseStatus: details.status,
@@ -338,17 +421,15 @@ export class NetworkErrorHandler {
       requestHeaders: details.requestHeaders,
       responseBody: details.responseBody,
       responseHeaders: details.responseHeaders,
-      stack: details.error?.stack
+      stack: details.error?.stack,
     };
 
     this.errorCallback(errorInfo);
   }
 
-
-
-  // 销毁拦截器
+  // Destroy interceptor
   destroy() {
-    // 恢复原始方法
+    // Restore original methods
     window.fetch = this.originalFetch;
     window.XMLHttpRequest = this.originalXMLHttpRequest;
   }

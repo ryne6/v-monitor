@@ -8,16 +8,16 @@ export class JSErrorHandler {
     this.init();
   }
 
-  // 初始化 JavaScript 错误捕获
+  // Initialize JavaScript error capture
   private init() {
-    // 捕获同步错误
+    // Capture synchronous errors
     window.onerror = this.handleError;
 
-    // 捕获 Promise 拒绝错误
+    // Capture Promise rejection errors
     window.addEventListener('unhandledrejection', this.handleUnhandledRejection);
   }
 
-  // 销毁监听器
+  // Destroy listeners
   destroy() {
     window.onerror = null;
     window.removeEventListener('unhandledrejection', this.handleUnhandledRejection);
@@ -37,7 +37,7 @@ export class JSErrorHandler {
     };
     
     this.errorCallback(errorInfo);
-    return false; // 不阻止默认错误处理
+    return false; // Don't prevent default error handling
   };
 
   private handleUnhandledRejection = (event: PromiseRejectionEvent) => {

@@ -5,7 +5,34 @@ export enum MonitorErrorType {
   PERFORMANCE = 'performance',
 }
 
-// 错误信息接口
+// Monitor configuration interface
+export interface MonitorConfig {
+  // Network monitoring configuration
+  network?: {
+    // Whether to enable network monitoring
+    enabled?: boolean;
+    // Whether to monitor fetch requests
+    monitorFetch?: boolean;
+    // Whether to monitor XMLHttpRequest
+    monitorXHR?: boolean;
+    // Excluded URL patterns (supports string matching and regular expressions)
+    excludePatterns?: (string | RegExp)[];
+    // Maximum response body length
+    maxResponseLength?: number;
+    // Whether to collect detailed request information
+    detailed?: boolean;
+  };
+  // JS error monitoring configuration
+  js?: {
+    enabled?: boolean;
+  };
+  // Resource error monitoring configuration
+  resource?: {
+    enabled?: boolean;
+  };
+}
+
+// Error information interface
 export interface ErrorInfo {
   type: MonitorErrorType;
   message: string;
@@ -16,7 +43,7 @@ export interface ErrorInfo {
   timestamp: number;
   url: string;
   userAgent: string;
-  // 网络请求相关字段
+  // Network request related fields
   requestMethod?: string;
   requestUrl?: string;
   responseStatus?: number;
@@ -28,6 +55,6 @@ export interface ErrorInfo {
   requestHeaders?: Record<string, string>;
   responseBody?: any;
   responseHeaders?: Record<string, string>;
-  // 其他扩展字段
+  // Other extension fields
   [key: string]: any;
 }

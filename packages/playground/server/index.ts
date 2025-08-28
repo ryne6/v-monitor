@@ -4,16 +4,16 @@ import cors from 'cors';
 const app = express();
 const PORT = 3001;
 
-// 中间件
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// 模拟延迟的中间件
+// Simulate delay middleware
 const delay = (ms: number) => (req: any, res: any, next: any) => {
   setTimeout(next, ms);
 };
 
-// 正常接口
+// Success endpoint
 app.get('/api/success', (req, res) => {
   res.json({ 
     message: 'Success',
@@ -22,7 +22,7 @@ app.get('/api/success', (req, res) => {
   });
 });
 
-// 404 错误
+// 404 error
 app.get('/api/not-found', (req, res) => {
   res.status(404).json({ 
     error: 'Not Found',
@@ -30,7 +30,7 @@ app.get('/api/not-found', (req, res) => {
   });
 });
 
-// 400 错误
+// 400 error
 app.get('/api/bad-request', (req, res) => {
   res.status(400).json({ 
     error: 'Bad Request',
@@ -38,7 +38,7 @@ app.get('/api/bad-request', (req, res) => {
   });
 });
 
-// 500 错误
+// 500 error
 app.get('/api/server-error', (req, res) => {
   res.status(500).json({ 
     error: 'Internal Server Error',
@@ -46,7 +46,7 @@ app.get('/api/server-error', (req, res) => {
   });
 });
 
-// 延迟响应 (用于测试超时)
+// Slow response (for testing timeout)
 app.get('/api/slow', delay(3000), (req, res) => {
   res.json({ 
     message: 'Slow response',
@@ -54,7 +54,7 @@ app.get('/api/slow', delay(3000), (req, res) => {
   });
 });
 
-// POST 接口测试
+// POST endpoint test
 app.post('/api/users', (req, res) => {
   const { name, email } = req.body;
   
@@ -71,7 +71,7 @@ app.post('/api/users', (req, res) => {
   });
 });
 
-// 随机错误 (50% 概率失败)
+// Random error (50% chance of failure)
 app.get('/api/random-error', (req, res) => {
   if (Math.random() > 0.5) {
     res.status(500).json({
@@ -86,7 +86,7 @@ app.get('/api/random-error', (req, res) => {
   }
 });
 
-// 大数据响应 (测试性能)
+// Large data response (for testing performance)
 app.get('/api/large-data', (req, res) => {
   const data = Array.from({ length: 1000 }, (_, i) => ({
     id: i + 1,
@@ -102,13 +102,13 @@ app.get('/api/large-data', (req, res) => {
   });
 });
 
-// CORS 测试 (故意返回 CORS 错误)
+// CORS test (intentionally return CORS error)
 app.get('/api/cors-error', (req, res) => {
   res.removeHeader('Access-Control-Allow-Origin');
   res.json({ message: 'This should cause CORS error' });
 });
 
-// 健康检查
+// Health check
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'OK',
@@ -117,19 +117,19 @@ app.get('/health', (req, res) => {
   });
 });
 
-// 启动服务器
+// Start server
 app.listen(PORT, () => {
   console.log(`🚀 Express test server running on http://localhost:${PORT}`);
   console.log(`📋 Available endpoints:`);
-  console.log(`   GET  /api/success      - 成功响应`);
-  console.log(`   GET  /api/not-found    - 404 错误`);
-  console.log(`   GET  /api/bad-request  - 400 错误`);
-  console.log(`   GET  /api/server-error - 500 错误`);
-  console.log(`   GET  /api/slow         - 慢响应 (3秒)`);
-  console.log(`   GET  /api/random-error - 随机错误`);
-  console.log(`   GET  /api/large-data   - 大数据响应`);
-  console.log(`   POST /api/users        - 创建用户`);
-  console.log(`   GET  /health           - 健康检查`);
+  console.log(`   GET  /api/success      - Success response`);
+  console.log(`   GET  /api/not-found    - 404 error`);
+  console.log(`   GET  /api/bad-request  - 400 error`);
+  console.log(`   GET  /api/server-error - 500 error`);
+  console.log(`   GET  /api/slow         - Slow response (3s)`);
+  console.log(`   GET  /api/random-error - Random error`);
+  console.log(`   GET  /api/large-data   - Large data response`);
+  console.log(`   POST /api/users        - Create user`);
+  console.log(`   GET  /health           - Health check`);
 });
 
 export default app;
