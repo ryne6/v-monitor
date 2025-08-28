@@ -1,0 +1,27 @@
+{
+  "name": "v-monitor",
+  "version": "0.0.1",
+  "description": "Frontend monitoring system monorepo",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter playground dev",
+    "build": "pnpm -r build",
+    "build:monitor": "pnpm --filter monitor build",
+    "build:playground": "pnpm --filter playground build",
+    "clean": "pnpm -r clean",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "~5.8.3",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "prettier": "^3.2.4"
+  },
+  "keywords": ["monitoring", "frontend", "error-tracking", "performance"],
+  "author": "",
+  "license": "MIT"
+}

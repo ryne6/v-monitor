@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monitor Playground</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
+      padding: 2rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      color: #2d3748;
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    
+    .subtitle {
+      color: #718096;
+      text-align: center;
+      margin-bottom: 3rem;
+      font-size: 1.1rem;
+    }
+    
+    .test-section {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .section-title {
+      color: #2d3748;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .section-title::before {
+      content: "🧪";
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+    
+    .error-log {
+      background: #1a202c;
+      color: #e2e8f0;
+      padding: 1.5rem;
+      border-radius: 12px;
+      font-family: 'SF Mono', Consolas, monospace;
+      font-size: 0.85rem;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 1rem;
+      line-height: 1.5;
+    }
+    
+    .error-item {
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+    
+    .error-type {
+      color: #fbb6ce;
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .error-message {
+      color: #fed7d7;
+      margin: 0.25rem 0;
+    }
+    
+    .error-meta {
+      color: #a0aec0;
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Monitor Playground</h1>
+    <p class="subtitle">测试前端监控系统的各种错误捕获功能</p>
+    
+    <div class="test-section">
+      <h2 class="section-title">JavaScript 错误测试</h2>
+      <div class="button-group">
+        <button onclick="triggerSyntaxError()">语法错误</button>
+        <button onclick="triggerReferenceError()">引用错误</button>
+        <button onclick="triggerTypeError()">类型错误</button>
+        <button onclick="triggerPromiseError()">Promise 拒绝</button>
+        <button onclick="triggerAsyncError()">异步错误</button>
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h2 class="section-title">资源加载错误测试</h2>
+      <div class="button-group">
+        <button onclick="triggerImageError()">图片加载失败</button>
+        <button onclick="triggerScriptError()">脚本加载失败</button>
+        <button onclick="triggerCSSError()">CSS 加载失败</button>
+        <button onclick="triggerAudioError()">音频加载失败</button>
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h2 class="section-title">网络请求错误测试</h2>
+      <div class="button-group">
+        <button onclick="triggerFetch404()">Fetch 404 错误</button>
+        <button onclick="triggerFetch500()">Fetch 500 错误</button>
+        <button onclick="triggerFetchNetwork()">Fetch 网络错误</button>
+        <button onclick="triggerXHR404()">XHR 404 错误</button>
+        <button onclick="triggerXHRTimeout()">XHR 超时错误</button>
+        <button onclick="triggerFetchSuccess()">Fetch 成功请求</button>
+        <button onclick="triggerRandomError()">随机错误</button>
+        <button onclick="triggerPostError()">POST 请求测试</button>
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h2 class="section-title">错误日志</h2>
+      <div id="errorLog" class="error-log">
+        <div style="color: #a0aec0; text-align: center; padding: 2rem;">
+          等待错误触发...
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
