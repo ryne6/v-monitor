@@ -2,6 +2,7 @@ import type { ErrorInfo, MonitorConfig } from './types';
 import { JSErrorHandler } from './handlers/jsErrorHandler';
 import { ResourceErrorHandler } from './handlers/resourceErrorHandler';
 import { NetworkErrorHandler } from './handlers/networkErrorHandler';
+export * from './reporters';
 
 // Export types and enums
 export * from './types';
@@ -31,7 +32,8 @@ export class Monitor {
       resource: {
         enabled: true,
         ...config.resource
-      }
+      },
+      ...config
     };
 
     this.jsErrorHandler = new JSErrorHandler(this.triggerError.bind(this));

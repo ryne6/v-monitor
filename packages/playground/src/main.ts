@@ -1,8 +1,16 @@
 // @ts-nocheck
-import { Monitor, type ErrorInfo } from '~/monitor/main';
+import { Monitor, type ErrorInfo, BeaconReporter } from '~/monitor/main';
 
 // Initialize monitor
 const monitor = new Monitor();
+
+// Setup error reporter
+monitor.setupReporter({
+  endpoint: 'http://localhost:3001/api/errors',
+  appId: 'playground-app',
+  env: 'development',
+  enabled: true
+});
 
 // Error log container
 const errorLogContainer = document.getElementById('errorLog')!;
@@ -213,6 +221,30 @@ function displayError(error: ErrorInfo) {
   } catch (error) {
     console.log('POST error caught:', error);
   }
+};
+
+// Reporter test functions
+(window as any).testReporter = () => {
+  const reporter = monitor.getReporter();
+  if (reporter) {
+    console.log('Reporter config:', reporter.getConfig());
+    console.log('sendBeacon supported:', BeaconReporter.isSupported());
+  } else {
+    console.log('No reporter configured');
+  }
+};
+
+(window as any).testManualReport = () => {
+  const testError: ErrorInfo = {
+    type: 'js',
+    message: 'Manual test error',
+    timestamp: Date.now(),
+    url: window.location.href,
+    userAgent: navigator.userAgent
+  };
+  
+  const success = monitor.reportError(testError);
+  console.log('Manual report result:', success);
 };
 
 console.log('Monitor Playground started!');

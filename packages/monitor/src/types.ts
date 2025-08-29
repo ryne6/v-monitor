@@ -30,6 +30,7 @@ export interface MonitorConfig {
   resource?: {
     enabled?: boolean;
   };
+  url?: string;
 }
 
 // Error information interface
