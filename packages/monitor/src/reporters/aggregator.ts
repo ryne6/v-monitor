@@ -134,11 +134,11 @@ export class ReporterAggregator {
   }
 
   /**
-   * 使用 Beacon API 刷新缓存的错误
-   * 主要用于页面卸载时的最后尝试
+   * 页面卸载时发送缓存的错误
+   * 优先使用 Beacon API，如果不支持则使用当前的传输方式
    */
   private flushWithBeacon() {
-    if (!this.beaconReporter || this.buckets.size === 0) return;
+    if (this.buckets.size === 0) return;
 
     const batch = Array.from(this.buckets.values()).map(({ representative, count, firstTs, lastTs }) => ({
       ...representative,
@@ -147,10 +147,25 @@ export class ReporterAggregator {
     
     this.buckets.clear();
 
-    if (batch.length === 1) {
-      this.beaconReporter.sendReport(batch[0]);
-    } else if (batch.length > 1) {
-      this.beaconReporter.sendBatchReport(batch);
+    // 如果支持 Beacon API 且实例存在，使用 Beacon 发送
+    if (this.beaconReporter && BeaconReporter.isSupported()) {
+      if (batch.length === 1) {
+        this.beaconReporter.sendReport(batch[0]);
+      } else if (batch.length > 1) {
+        this.beaconReporter.sendBatchReport(batch);
+      }
+      return;
+    }
+
+    // 降级：使用当前的传输方式
+    try {
+      if (batch.length === 1) {
+        this.transport.report(batch[0]);
+      } else if (batch.length > 1) {
+        this.transport.reportBatch(batch);
+      }
+    } catch {
+      // 页面卸载时发送失败就丢弃
     }
   }
 
