@@ -3,6 +3,7 @@ import { BeaconReporter } from './beaconReporter';
 import type { ReporterTransport } from './types';
 export { FetchReporter } from './fetchReporter';
 export { XHRReporter } from './xhrReporter';
+export { ReporterAggregator } from './aggregator';
 
 export interface ReportFacadeOptions extends MonitorConfig {
   url?: string;
