@@ -1,48 +1,78 @@
-import type { ErrorInfo, MonitorConfig } from '../types';
-import type { ReporterTransport } from './types';
+import type { ErrorInfo } from '../types';
+import { BaseTransport } from './baseTransport';
 
-type XHRReporterOptions = MonitorConfig;
+export class XHRReporter extends BaseTransport {
+  protected sendReport(error: ErrorInfo): Promise<boolean> {
+    return new Promise((resolve) => {
+      const url = this.config.report?.url;
+      if (!url) return resolve(false);
 
-export class XHRReporter implements ReporterTransport {
-  private options: XHRReporterOptions;
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        // Add custom headers
+        const customHeaders = this.config.report?.transport?.headers;
+        if (customHeaders) {
+          Object.entries(customHeaders).forEach(([key, value]) => {
+            xhr.setRequestHeader(key, value);
+          });
+        }
 
-  constructor(options: XHRReporterOptions = {}) {
-    this.options = options;
+        xhr.onload = () => {
+          resolve(xhr.status >= 200 && xhr.status < 300);
+        };
+
+        xhr.onerror = () => {
+          resolve(false);
+        };
+
+        xhr.send(JSON.stringify(this.buildPayload(error)));
+      } catch {
+        resolve(false);
+      }
+    });
   }
 
-  report(error: ErrorInfo): boolean {
-    const url = this.options.report?.url;
-    if (!url) return false;
-    try {
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', url, true);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      // fire-and-forget; no handlers to avoid recursion with our interceptors
-      xhr.send(JSON.stringify(this.buildPayload(error)));
-      return true;
-    } catch {
-      return false;
-    }
-  }
+  protected sendBatchReport(errors: ErrorInfo[]): Promise<boolean> {
+    return new Promise((resolve) => {
+      if (!errors.length) return resolve(false);
+      const url = this.config.report?.url;
+      if (!url) return resolve(false);
 
-  reportBatch(errors: ErrorInfo[]): boolean {
-    if (!errors.length) return false;
-    const url = (this.options as any).url as string | undefined;
-    if (!url) return false;
-    try {
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', url, true);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      const payload = {
-        timestamp: Date.now(),
-        count: errors.length,
-        errors: errors.map(e => this.buildPayload(e))
-      };
-      xhr.send(JSON.stringify(payload));
-      return true;
-    } catch {
-      return false;
-    }
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        // Add custom headers
+        const customHeaders = this.config.report?.transport?.headers;
+        if (customHeaders) {
+          Object.entries(customHeaders).forEach(([key, value]) => {
+            xhr.setRequestHeader(key, value);
+          });
+        }
+
+        xhr.onload = () => {
+          resolve(xhr.status >= 200 && xhr.status < 300);
+        };
+
+        xhr.onerror = () => {
+          resolve(false);
+        };
+
+        const payload = {
+          timestamp: Date.now(),
+          count: errors.length,
+          errors: errors.map(e => this.buildPayload(e))
+        };
+        
+        xhr.send(JSON.stringify(payload));
+      } catch {
+        resolve(false);
+      }
+    });
   }
 
   private buildPayload(error: ErrorInfo) {

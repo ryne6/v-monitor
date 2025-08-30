@@ -1,56 +1,71 @@
 import type { ErrorInfo, MonitorConfig } from '../types';
-import type { ReporterTransport } from './types';
+import { BaseTransport } from './baseTransport';
+import { FetchReporter } from './fetchReporter';
 
-export class BeaconReporter implements ReporterTransport {
-  private config: MonitorConfig;
+export class BeaconReporter extends BaseTransport {
+  private fallbackReporter: FetchReporter;
+  private isUnloading: boolean = false;
 
   constructor(config: MonitorConfig) {
-    this.config = {
-      network: {
-        enabled: true,
-        monitorFetch: true,
-        monitorXHR: true,
-        excludePatterns: [],
-        maxResponseLength: 1000,
-        detailed: true,
-        ...config.network
-      },
-      ...config
-    };
-  }
-
-  report(error: ErrorInfo): boolean {
-    if (!this.config.network?.enabled) return false;
-    try {
-      const url = this.config.report?.url;
-      if (!url) return false;
-      return navigator.sendBeacon(url, JSON.stringify(this.buildReportData(error)));
-    } catch {
-      return false;
+    super(config);
+    this.fallbackReporter = new FetchReporter(config);
+    
+    // 监听页面卸载事件
+    if (typeof window !== 'undefined') {
+      window.addEventListener('unload', () => {
+        this.isUnloading = true;
+      });
+      window.addEventListener('beforeunload', () => {
+        this.isUnloading = true;
+      });
     }
   }
 
-  reportBatch(errors: ErrorInfo[]): boolean {
-    if (!this.config.network?.enabled || errors.length === 0) return false;
-    try {
-      const url = this.config.report?.url;
-      if (!url) return false;
-      const batch = {
-        timestamp: Date.now(),
-        count: errors.length,
-        errors: errors.map(e => this.buildReportData(e))
-      };
-      return navigator.sendBeacon(url, JSON.stringify(batch));
-    } catch {
-      return false;
+  protected async sendReport(error: ErrorInfo): Promise<boolean> {
+    const url = this.config.report?.url;
+    if (!url) return false;
+
+    // 在页面卸载时使用 sendBeacon
+    if (this.isUnloading) {
+      try {
+        return navigator.sendBeacon(url, JSON.stringify(this.buildPayload(error)));
+      } catch {
+        return false;
+      }
     }
+
+    // 在正常情况下使用 fetch，以便支持重试
+    return this.fallbackReporter.report(error);
+  }
+
+  protected async sendBatchReport(errors: ErrorInfo[]): Promise<boolean> {
+    if (!errors.length) return false;
+    const url = this.config.report?.url;
+    if (!url) return false;
+
+    // 在页面卸载时使用 sendBeacon
+    if (this.isUnloading) {
+      try {
+        const batch = {
+          timestamp: Date.now(),
+          count: errors.length,
+          errors: errors.map(e => this.buildPayload(e))
+        };
+        return navigator.sendBeacon(url, JSON.stringify(batch));
+      } catch {
+        return false;
+      }
+    }
+
+    // 在正常情况下使用 fetch，以便支持重试
+    return this.fallbackReporter.reportBatch(errors);
   }
 
   static isSupported(): boolean {
     return typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function';
   }
 
-  private buildReportData(error: ErrorInfo) {
+  private buildPayload(error: ErrorInfo) {
     return {
       filename: error.filename,
       line: error.line,

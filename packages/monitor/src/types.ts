@@ -22,41 +22,6 @@ export interface ReportConfig {
       // Custom priority order, e.g. ['beacon', 'fetch', 'xhr']
       priority?: Array<'beacon' | 'fetch' | 'xhr'>;
     };
-    // Retry configuration
-    retry?: {
-      // Maximum number of retry attempts
-      maxAttempts?: number;
-      // Initial retry delay in milliseconds
-      initialDelayMs?: number;
-      // Maximum retry delay in milliseconds
-      maxDelayMs?: number;
-      // Exponential backoff factor
-      backoffFactor?: number;
-      // Add random jitter to prevent thundering herd
-      jitter?: boolean;
-      // Retry on specific HTTP status codes
-      retryableStatuses?: number[];
-      // Retry on network errors
-      retryNetworkError?: boolean;
-      // Retry conditions for different error types
-      retryConditions?: {
-        // Function to determine if a network error should be retried
-        networkError?: (error: Error) => boolean;
-        // Function to determine if a response should be retried based on status
-        httpError?: (status: number, response: any) => boolean;
-      };
-      // Persistent storage key for retry queue
-      persistKey?: string;
-      // Queue configuration for failed reports
-      queue?: {
-        // Maximum queue size
-        maxSize?: number;
-        // Time to live for queued items in milliseconds
-        ttlMs?: number;
-        // Whether to persist queue across page reloads
-        persistent?: boolean;
-      };
-    };
   };
   // Error aggregation configuration
   aggregator?: {
@@ -70,6 +35,43 @@ export interface ReportConfig {
     dedupeMaxKeys?: number;
     // Rate limit per minute
     rateLimitPerMinute?: number;
+  };
+
+  // Retry configuration
+  retry?: {
+    enabled?: boolean;
+    // Maximum number of retry attempts
+    maxAttempts?: number;
+    // Initial retry delay in milliseconds
+    initialDelayMs?: number;
+    // Maximum retry delay in milliseconds
+    maxDelayMs?: number;
+    // Exponential backoff factor
+    backoffFactor?: number;
+    // Add random jitter to prevent thundering herd
+    jitter?: boolean;
+    // Retry on specific HTTP status codes
+    retryableStatuses?: number[];
+    // Retry on network errors
+    retryNetworkError?: boolean;
+    // Retry conditions for different error types
+    retryConditions?: {
+      // Function to determine if a network error should be retried
+      networkError?: (error: Error) => boolean;
+      // Function to determine if a response should be retried based on status
+      httpError?: (status: number, response: any) => boolean;
+    };
+    // Persistent storage key for retry queue
+    persistKey?: string;
+    // Queue configuration for failed reports
+    queue?: {
+      // Maximum queue size
+      maxSize?: number;
+      // Time to live for queued items in milliseconds
+      ttlMs?: number;
+      // Whether to persist queue across page reloads
+      persistent?: boolean;
+    };
   };
 }
 

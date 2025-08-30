@@ -1,49 +1,51 @@
-import type { ErrorInfo, MonitorConfig } from '../types';
-import type { ReporterTransport } from './types';
+import type { ErrorInfo } from '../types';
+import { BaseTransport } from './baseTransport';
 
-type FetchReporterOptions = MonitorConfig;
-
-export class FetchReporter implements ReporterTransport {
-  private options: FetchReporterOptions;
-
-  constructor(options: FetchReporterOptions = {}) {
-    this.options = options;
-  }
-
-  report(error: ErrorInfo): boolean {
-    const url = this.options.report?.url;
+export class FetchReporter extends BaseTransport {
+  protected async sendReport(error: ErrorInfo): Promise<boolean> {
+    const url = this.config.report?.url;
     if (!url) return false;
+
     try {
-      // fire-and-forget; do not await
-      void fetch(url, {
+      const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...this.config.report?.transport?.headers
+        },
         body: JSON.stringify(this.buildPayload(error)),
         keepalive: true
       });
-      return true;
+
+      return response.ok;
     } catch {
       return false;
     }
   }
 
-  reportBatch(errors: ErrorInfo[]): boolean {
+  protected async sendBatchReport(errors: ErrorInfo[]): Promise<boolean> {
     if (!errors.length) return false;
-    const url = (this.options as any).url as string | undefined;
+    const url = this.config.report?.url;
     if (!url) return false;
+
     try {
       const payload = {
         timestamp: Date.now(),
         count: errors.length,
         errors: errors.map(e => this.buildPayload(e))
       };
-      void fetch(url, {
+
+      const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...this.config.report?.transport?.headers
+        },
         body: JSON.stringify(payload),
         keepalive: true
       });
-      return true;
+
+      return response.ok;
     } catch {
       return false;
     }

@@ -52,11 +52,11 @@ export class Reporter {
     }
   }
 
-  report(error: ErrorInfo): boolean {
+  report(error: ErrorInfo): boolean | Promise<boolean> {
     return this.transport ? this.transport.report(error) : false;
   }
 
-  reportBatch(errors: ErrorInfo[]): boolean {
+  reportBatch(errors: ErrorInfo[]): boolean | Promise<boolean> {
     return this.transport ? this.transport.reportBatch(errors) : false;
   }
 
