@@ -49,19 +49,40 @@ export abstract class BaseTransport implements ReporterTransport {
 
   private flushWithBeacon(): void {
     if (!this.beaconReporter) return;
-    
+
     // Send all errors in buckets
     const batch = Array.from(this.buckets.values()).map(({ representative, count, firstTs, lastTs }) => ({
       ...representative,
       _aggregate: { count, firstTs, lastTs }
     }));
-    
+
+
+
+    // 也将溢出缓存区的错误加入 batch，补齐 _aggregate 字段
+    const now = Date.now();
+    if (this.overflowBuffer.length > 0) {
+      batch.push(...this.overflowBuffer.map(error => ({
+        ...error,
+        _aggregate: { count: 1, firstTs: now, lastTs: now }
+      })));
+    }
+
+    // 也将重试队列中的错误加入 batch，补齐 _aggregate 字段
+    if (this.retryQueue.size > 0) {
+      batch.push(...Array.from(this.retryQueue.values()).map(item => ({
+        ...item.error,
+        _aggregate: { count: 1, firstTs: now, lastTs: now }
+      })));
+    }
+
     if (batch.length > 0) {
       this.beaconReporter.sendBatchReport(batch);
     }
-    
-    // Clear buckets after sending
-    this.buckets.clear();
+
+  // Clear buckets, overflowBuffer, and retryQueue after sending
+  this.buckets.clear();
+  this.overflowBuffer = [];
+  this.retryQueue.clear();
   }
 
   async report(error: ErrorInfo): Promise<boolean> {
