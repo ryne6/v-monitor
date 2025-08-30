@@ -5,8 +5,79 @@ export enum MonitorErrorType {
   PERFORMANCE = 'performance',
 }
 
+// Report configuration interface
+export interface ReportConfig {
+  // Report endpoint URL
+  url: string;
+  // Transport configuration
+  transport?: {
+    // Specify transport type, 'auto' will automatically choose the best available transport
+    type?: 'auto' | 'beacon' | 'fetch' | 'xhr';
+    // Custom headers (not applicable for beacon transport)
+    headers?: Record<string, string>;
+    // Fallback options when using 'auto'
+    fallback?: {
+      // Whether to allow fallback to next available transport
+      enabled?: boolean;
+      // Custom priority order, e.g. ['beacon', 'fetch', 'xhr']
+      priority?: Array<'beacon' | 'fetch' | 'xhr'>;
+    };
+    // Retry configuration
+    retry?: {
+      // Maximum number of retry attempts
+      maxAttempts?: number;
+      // Initial retry delay in milliseconds
+      initialDelayMs?: number;
+      // Maximum retry delay in milliseconds
+      maxDelayMs?: number;
+      // Exponential backoff factor
+      backoffFactor?: number;
+      // Add random jitter to prevent thundering herd
+      jitter?: boolean;
+      // Retry on specific HTTP status codes
+      retryableStatuses?: number[];
+      // Retry on network errors
+      retryNetworkError?: boolean;
+      // Retry conditions for different error types
+      retryConditions?: {
+        // Function to determine if a network error should be retried
+        networkError?: (error: Error) => boolean;
+        // Function to determine if a response should be retried based on status
+        httpError?: (status: number, response: any) => boolean;
+      };
+      // Persistent storage key for retry queue
+      persistKey?: string;
+      // Queue configuration for failed reports
+      queue?: {
+        // Maximum queue size
+        maxSize?: number;
+        // Time to live for queued items in milliseconds
+        ttlMs?: number;
+        // Whether to persist queue across page reloads
+        persistent?: boolean;
+      };
+    };
+  };
+  // Error aggregation configuration
+  aggregator?: {
+    // Aggregation window time in milliseconds
+    windowMs?: number;
+    // Maximum batch size
+    maxBatch?: number;
+    // Deduplication time window in milliseconds
+    dedupeTtlMs?: number;
+    // Maximum number of deduplication keys
+    dedupeMaxKeys?: number;
+    // Rate limit per minute
+    rateLimitPerMinute?: number;
+  };
+}
+
 // Monitor configuration interface
 export interface MonitorConfig {
+  // Report configuration
+  report?: ReportConfig;
+  
   // Network monitoring configuration
   network?: {
     // Whether to enable network monitoring
@@ -30,7 +101,6 @@ export interface MonitorConfig {
   resource?: {
     enabled?: boolean;
   };
-  url?: string;
 }
 
 // Error information interface

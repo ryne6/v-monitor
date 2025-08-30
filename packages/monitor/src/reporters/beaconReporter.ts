@@ -22,7 +22,7 @@ export class BeaconReporter implements ReporterTransport {
   report(error: ErrorInfo): boolean {
     if (!this.config.network?.enabled) return false;
     try {
-      const url = (this as any).config?.url as string | undefined;
+      const url = this.config.report?.url;
       if (!url) return false;
       return navigator.sendBeacon(url, JSON.stringify(this.buildReportData(error)));
     } catch {
@@ -33,7 +33,7 @@ export class BeaconReporter implements ReporterTransport {
   reportBatch(errors: ErrorInfo[]): boolean {
     if (!this.config.network?.enabled || errors.length === 0) return false;
     try {
-      const url = (this as any).config?.url as string | undefined;
+      const url = this.config.report?.url;
       if (!url) return false;
       const batch = {
         timestamp: Date.now(),

@@ -1,21 +1,54 @@
 import type { ErrorInfo, MonitorConfig } from '../types';
 import { BeaconReporter } from './beaconReporter';
+import { FetchReporter } from './fetchReporter';
+import { XHRReporter } from './xhrReporter';
 import type { ReporterTransport } from './types';
 export { FetchReporter } from './fetchReporter';
 export { XHRReporter } from './xhrReporter';
 export { ReporterAggregator } from './aggregator';
 
-export interface ReportFacadeOptions extends MonitorConfig {
-  url?: string;
-}
-
 export class Reporter {
   private transport: ReporterTransport | null = null;
 
-  constructor(options: ReportFacadeOptions = {}) {
-    if (BeaconReporter.isSupported()) {
-      this.transport = new BeaconReporter(options);
-      (this as any).config = options;
+  constructor(options: MonitorConfig = {}) {
+    this.transport = this.createTransport(options);
+  }
+
+  private createTransport(options: MonitorConfig): ReporterTransport | null {
+    const transportType = options.report?.transport?.type || 'auto';
+    const fallbackEnabled = options.report?.transport?.fallback?.enabled ?? true;
+    const customPriority = options.report?.transport?.fallback?.priority;
+
+    if (transportType !== 'auto') {
+      // 直接使用指定的 transport
+      return this.createSpecificTransport(transportType, options);
+    }
+
+    // 默认优先级顺序
+    const defaultPriority = ['beacon', 'fetch', 'xhr'] as const;
+    const priority = customPriority || defaultPriority;
+
+    // 按优先级尝试创建 transport
+    for (const type of priority) {
+      const transport = this.createSpecificTransport(type, options);
+      if (transport && fallbackEnabled) {
+        return transport;
+      }
+    }
+
+    return null;
+  }
+
+  private createSpecificTransport(type: 'beacon' | 'fetch' | 'xhr', options: MonitorConfig): ReporterTransport | null {
+    switch (type) {
+      case 'beacon':
+        return BeaconReporter.isSupported() ? new BeaconReporter(options) : null;
+      case 'fetch':
+        return typeof fetch !== 'undefined' ? new FetchReporter(options) : null;
+      case 'xhr':
+        return typeof XMLHttpRequest !== 'undefined' ? new XHRReporter(options) : null;
+      default:
+        return null;
     }
   }
 
@@ -27,7 +60,6 @@ export class Reporter {
     return this.transport ? this.transport.reportBatch(errors) : false;
   }
 
-  // Allow injecting a custom transport (DIP)
   setTransport(transport: ReporterTransport) {
     this.transport = transport;
   }

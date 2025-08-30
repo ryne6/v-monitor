@@ -1,7 +1,7 @@
 import type { ErrorInfo, MonitorConfig } from '../types';
 import type { ReporterTransport } from './types';
 
-type FetchReporterOptions = MonitorConfig & { url?: string };
+type FetchReporterOptions = MonitorConfig;
 
 export class FetchReporter implements ReporterTransport {
   private options: FetchReporterOptions;
@@ -11,7 +11,7 @@ export class FetchReporter implements ReporterTransport {
   }
 
   report(error: ErrorInfo): boolean {
-    const url = (this.options as any).url as string | undefined;
+    const url = this.options.report?.url;
     if (!url) return false;
     try {
       // fire-and-forget; do not await

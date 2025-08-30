@@ -1,7 +1,7 @@
 import type { ErrorInfo, MonitorConfig } from '../types';
 import type { ReporterTransport } from './types';
 
-type XHRReporterOptions = MonitorConfig & { url?: string };
+type XHRReporterOptions = MonitorConfig;
 
 export class XHRReporter implements ReporterTransport {
   private options: XHRReporterOptions;
@@ -11,7 +11,7 @@ export class XHRReporter implements ReporterTransport {
   }
 
   report(error: ErrorInfo): boolean {
-    const url = (this.options as any).url as string | undefined;
+    const url = this.options.report?.url;
     if (!url) return false;
     try {
       const xhr = new XMLHttpRequest();
