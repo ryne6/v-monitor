@@ -4,7 +4,6 @@ import { XHRReporter } from './xhrReporter';
 import type { ReporterTransport } from './types';
 export { FetchReporter } from './fetchReporter';
 export { XHRReporter } from './xhrReporter';
-export { ReporterAggregator } from './aggregator';
 
 export class Reporter {
   private transport: ReporterTransport | null = null;
