@@ -12,15 +12,15 @@ export interface ReportConfig {
   // Transport configuration
   transport?: {
     // Specify transport type, 'auto' will automatically choose the best available transport
-    type?: 'auto' | 'beacon' | 'fetch' | 'xhr';
-    // Custom headers (not applicable for beacon transport)
+    type?: 'auto' | 'fetch' | 'xhr';
+    // Custom headers
     headers?: Record<string, string>;
     // Fallback options when using 'auto'
     fallback?: {
       // Whether to allow fallback to next available transport
       enabled?: boolean;
-      // Custom priority order, e.g. ['beacon', 'fetch', 'xhr']
-      priority?: Array<'beacon' | 'fetch' | 'xhr'>;
+      // Custom priority order
+      priority?: Array<'fetch' | 'xhr'>;
     };
   };
   // Error aggregation configuration

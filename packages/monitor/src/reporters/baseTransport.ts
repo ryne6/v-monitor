@@ -100,31 +100,54 @@ export abstract class BaseTransport implements ReporterTransport {
   }
 
   private scheduleRetry(): void {
-    setTimeout(async () => {
-      const now = Date.now();
-      const retriableItems = Array.from(this.retryQueue.entries())
-        .filter(([_, item]) => item.nextRetryTime <= now);
+    // 找到下一个需要重试的最早时间
+    const now = Date.now();
+    let nextRetryTime = Number.MAX_VALUE;
+    
+    for (const [_, item] of this.retryQueue) {
+      if (item.nextRetryTime < nextRetryTime) {
+        nextRetryTime = item.nextRetryTime;
+      }
+    }
 
-      for (const [key, item] of retriableItems) {
+    // 如果没有需要重试的项目，直接返回
+    if (nextRetryTime === Number.MAX_VALUE) {
+      return;
+    }
+
+    // 计算下一次重试的延迟时间
+    const delay = Math.max(0, nextRetryTime - now);
+
+    setTimeout(async () => {
+      const currentTime = Date.now();
+      const retriableItems = Array.from(this.retryQueue.entries())
+        .filter(([_, item]) => item.nextRetryTime <= currentTime);
+
+      // 批量处理到期的重试项
+      if (retriableItems.length > 1) {
+        const errors = retriableItems.map(([_, item]) => item.error);
         try {
-          const success = await this.sendReport(item.error);
+          const success = await this.sendBatchReport(errors);
           if (success) {
-            this.retryQueue.delete(key);
+            retriableItems.forEach(([key]) => this.retryQueue.delete(key));
           }
         } catch {
-          // 失败继续保留在队列中
+          // 批量重试失败，降级到单个重试
+          await this.retryIndividually(retriableItems);
         }
+      } else {
+        // 单个重试
+        await this.retryIndividually(retriableItems);
       }
 
-      // 如果队列非空，继续调度
+      // 如果队列非空，继续调度下一次重试
       if (this.retryQueue.size > 0) {
         this.scheduleRetry();
       }
-    }, 1000);
+    }, delay);
   }
 
   private getErrorKey(error: ErrorInfo): string {
-    // 使用类似 Aggregator 的 fingerprint 逻辑
     return JSON.stringify({
       type: error.type,
       message: error.message,
@@ -132,5 +155,22 @@ export abstract class BaseTransport implements ReporterTransport {
       line: error.line,
       column: error.column
     });
+  }
+
+  private async retryIndividually(items: [string, { error: ErrorInfo; attempts: number; nextRetryTime: number; }][]): Promise<void> {
+    for (const [key, item] of items) {
+      try {
+        const success = await this.sendReport(item.error);
+        if (success) {
+          this.retryQueue.delete(key);
+        } else {
+          // 更新下次重试时间
+          item.nextRetryTime = Date.now() + this.calculateRetryDelay(item.attempts);
+        }
+      } catch {
+        // 发送失败，更新下次重试时间
+        item.nextRetryTime = Date.now() + this.calculateRetryDelay(item.attempts);
+      }
+    }
   }
 }

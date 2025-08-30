@@ -1,5 +1,4 @@
 import type { ErrorInfo, MonitorConfig } from '../types';
-import { BeaconReporter } from './beaconReporter';
 import { FetchReporter } from './fetchReporter';
 import { XHRReporter } from './xhrReporter';
 import type { ReporterTransport } from './types';
@@ -25,7 +24,7 @@ export class Reporter {
     }
 
     // 默认优先级顺序
-    const defaultPriority = ['beacon', 'fetch', 'xhr'] as const;
+    const defaultPriority = ['fetch', 'xhr'] as const;
     const priority = customPriority || defaultPriority;
 
     // 按优先级尝试创建 transport
@@ -39,10 +38,8 @@ export class Reporter {
     return null;
   }
 
-  private createSpecificTransport(type: 'beacon' | 'fetch' | 'xhr', options: MonitorConfig): ReporterTransport | null {
+  private createSpecificTransport(type: 'fetch' | 'xhr', options: MonitorConfig): ReporterTransport | null {
     switch (type) {
-      case 'beacon':
-        return BeaconReporter.isSupported() ? new BeaconReporter(options) : null;
       case 'fetch':
         return typeof fetch !== 'undefined' ? new FetchReporter(options) : null;
       case 'xhr':

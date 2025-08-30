@@ -1,5 +1,6 @@
 import type { ErrorInfo } from '../types';
 import type { ReporterTransport } from './types';
+import { BeaconReporter } from './beaconReporter';
 
 export interface AggregatorOptions {
   windowMs?: number;
@@ -19,12 +20,14 @@ interface AggregatedItem {
 
 export class ReporterAggregator {
   private transport: ReporterTransport;
+  private beaconReporter: BeaconReporter | null = null;
   private options: Required<AggregatorOptions>;
   private timer: number | null = null;
   private buckets: Map<string, AggregatedItem> = new Map();
   private dedupeTimestamps: Map<string, number> = new Map();
   private rateWindowStart = Date.now();
   private rateCount = 0;
+  private unloadHandler: () => void = () => {};
 
   constructor(transport: ReporterTransport, options: AggregatorOptions = {}) {
     this.transport = transport;
@@ -36,6 +39,19 @@ export class ReporterAggregator {
       rateLimitPerMinute: options.rateLimitPerMinute ?? 100,
       fatalBypass: options.fatalBypass ?? (() => false)
     };
+
+    // 如果支持 Beacon API，初始化 BeaconReporter
+    if (BeaconReporter.isSupported()) {
+      this.beaconReporter = new BeaconReporter(this.transport.getConfig?.()?.report?.url || '');
+      
+      // 页面卸载时发送未发送的错误
+      this.unloadHandler = () => {
+        this.flushWithBeacon();
+      };
+      
+      window.addEventListener('unload', this.unloadHandler);
+      window.addEventListener('beforeunload', this.unloadHandler);
+    }
   }
 
   enqueue(error: ErrorInfo) {
@@ -117,8 +133,44 @@ export class ReporterAggregator {
     this.flush();
   }
 
+  /**
+   * 使用 Beacon API 刷新缓存的错误
+   * 主要用于页面卸载时的最后尝试
+   */
+  private flushWithBeacon() {
+    if (!this.beaconReporter || this.buckets.size === 0) return;
+
+    const batch = Array.from(this.buckets.values()).map(({ representative, count, firstTs, lastTs }) => ({
+      ...representative,
+      _aggregate: { count, firstTs, lastTs }
+    }));
+    
+    this.buckets.clear();
+
+    if (batch.length === 1) {
+      this.beaconReporter.sendReport(batch[0]);
+    } else if (batch.length > 1) {
+      this.beaconReporter.sendBatchReport(batch);
+    }
+  }
+
   setTransport(transport: ReporterTransport) {
     this.transport = transport;
+
+    // 更新 BeaconReporter 的 URL
+    if (this.beaconReporter && transport.getConfig) {
+      const url = transport.getConfig()?.report?.url;
+      if (url) {
+        this.beaconReporter = new BeaconReporter(url);
+      }
+    }
+  }
+
+  destroy() {
+    if (this.unloadHandler) {
+      window.removeEventListener('unload', this.unloadHandler);
+      window.removeEventListener('beforeunload', this.unloadHandler);
+    }
   }
 
   private fingerprint(e: ErrorInfo): string {

@@ -1,68 +1,65 @@
-import type { ErrorInfo, MonitorConfig } from '../types';
-import { BaseTransport } from './baseTransport';
-import { FetchReporter } from './fetchReporter';
+import type { ErrorInfo } from '../types';
 
-export class BeaconReporter extends BaseTransport {
-  private fallbackReporter: FetchReporter;
-  private isUnloading: boolean = false;
+/**
+ * BeaconReporter 用于在页面卸载时发送最后的错误报告
+ * 不继承自 BaseTransport 因为它不需要重试机制
+ */
+export class BeaconReporter {
+  private url: string;
 
-  constructor(config: MonitorConfig) {
-    super(config);
-    this.fallbackReporter = new FetchReporter(config);
-    
-    // 监听页面卸载事件
-    if (typeof window !== 'undefined') {
-      window.addEventListener('unload', () => {
-        this.isUnloading = true;
-      });
-      window.addEventListener('beforeunload', () => {
-        this.isUnloading = true;
-      });
+  constructor(url: string) {
+    this.url = url;
+  }
+
+  /**
+   * 使用 Beacon API 发送单个错误
+   * 主要用于页面卸载时的最后发送尝试
+   */
+  public sendReport(error: ErrorInfo): boolean {
+    if (!this.url || !navigator.sendBeacon) return false;
+
+    try {
+      const blob = new Blob(
+        [JSON.stringify(this.buildPayload(error))],
+        { type: 'application/json' }
+      );
+
+      return navigator.sendBeacon(this.url, blob);
+    } catch {
+      return false;
     }
   }
 
-  protected async sendReport(error: ErrorInfo): Promise<boolean> {
-    const url = this.config.report?.url;
-    if (!url) return false;
+  /**
+   * 使用 Beacon API 批量发送错误
+   * 主要用于页面卸载时的最后发送尝试
+   */
+  public sendBatchReport(errors: ErrorInfo[]): boolean {
+    if (!errors.length || !this.url || !navigator.sendBeacon) return false;
 
-    // 在页面卸载时使用 sendBeacon
-    if (this.isUnloading) {
-      try {
-        return navigator.sendBeacon(url, JSON.stringify(this.buildPayload(error)));
-      } catch {
-        return false;
-      }
+    try {
+      const payload = {
+        timestamp: Date.now(),
+        count: errors.length,
+        errors: errors.map(e => this.buildPayload(e))
+      };
+
+      const blob = new Blob(
+        [JSON.stringify(payload)],
+        { type: 'application/json' }
+      );
+
+      return navigator.sendBeacon(this.url, blob);
+    } catch {
+      return false;
     }
-
-    // 在正常情况下使用 fetch，以便支持重试
-    return this.fallbackReporter.report(error);
   }
 
-  protected async sendBatchReport(errors: ErrorInfo[]): Promise<boolean> {
-    if (!errors.length) return false;
-    const url = this.config.report?.url;
-    if (!url) return false;
-
-    // 在页面卸载时使用 sendBeacon
-    if (this.isUnloading) {
-      try {
-        const batch = {
-          timestamp: Date.now(),
-          count: errors.length,
-          errors: errors.map(e => this.buildPayload(e))
-        };
-        return navigator.sendBeacon(url, JSON.stringify(batch));
-      } catch {
-        return false;
-      }
-    }
-
-    // 在正常情况下使用 fetch，以便支持重试
-    return this.fallbackReporter.reportBatch(errors);
-  }
-
-  static isSupported(): boolean {
-    return typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function';
+  /**
+   * 检查浏览器是否支持 Beacon API
+   */
+  public static isSupported(): boolean {
+    return typeof navigator !== 'undefined' && !!navigator.sendBeacon;
   }
 
   private buildPayload(error: ErrorInfo) {
@@ -87,5 +84,3 @@ export class BeaconReporter extends BaseTransport {
     };
   }
 }
-
-
