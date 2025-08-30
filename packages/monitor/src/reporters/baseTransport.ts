@@ -22,6 +22,10 @@ export abstract class BaseTransport implements ReporterTransport {
   private rateWindowStart = Date.now();
   private rateCount = 0;
 
+  // 限流溢出缓存区
+  private overflowBuffer: ErrorInfo[] = [];
+  private overflowTimer: number | null = null;
+
   // Beacon 支持
   private beaconReporter: BeaconReporter | null = null;
   private unloadHandler: () => void = () => {};
@@ -66,11 +70,21 @@ export abstract class BaseTransport implements ReporterTransport {
     if (now - this.rateWindowStart >= 60000) {
       this.rateWindowStart = now;
       this.rateCount = 0;
+
+      // 新时间窗口，处理溢出缓存区
+      if (this.overflowBuffer.length > 0) {
+        this.processOverflowBuffer();
+      }
     }
 
     const rateLimit = this.config.report?.aggregator?.rateLimitPerMinute ?? 100;
     if (this.rateCount >= rateLimit) {
-      return false; // 超出限流阈值
+      // 超出限流阈值，放入缓存区
+      if (this.overflowBuffer.length) {
+        this.overflowBuffer.push(error);
+        this.scheduleOverflowProcess();
+      }
+      return false;
     }
 
     // 如果是致命错误，直接发送
@@ -96,9 +110,9 @@ export abstract class BaseTransport implements ReporterTransport {
     }
 
     // 普通错误进入聚合流程
-    const key = this.fingerprint(error);
-    const dedupeTtl = this.config.report?.aggregator?.dedupeTtlMs ?? 60000;
-    const lastSeen = this.dedupeTimestamps.get(key);
+  const key = this.fingerprint(error);
+  const dedupeTtl = this.config.report?.aggregator?.dedupeTtlMs ?? 60000;
+  const lastSeen = this.dedupeTimestamps.get(key);
     
     if (lastSeen && now - lastSeen < dedupeTtl) {
       // 在去重窗口内，更新聚合信息
@@ -119,19 +133,58 @@ export abstract class BaseTransport implements ReporterTransport {
     });
     this.dedupeTimestamps.set(key, now);
 
-    // 清理过期的去重记录
+    // 优化：先清理所有过期的去重记录，再按最老顺序逐步删除，直到满足maxKeys
     const maxKeys = this.config.report?.aggregator?.dedupeMaxKeys ?? 1000;
-    if (this.dedupeTimestamps.size > maxKeys) {
+    const nowTs = now;
+    // 1. 清理所有过期key
+    for (const [k, ts] of this.dedupeTimestamps.entries()) {
+      if (nowTs - ts > dedupeTtl) {
+        this.dedupeTimestamps.delete(k);
+      }
+    }
+    // 2. 如果还超限，按最老顺序逐步删除
+    while (this.dedupeTimestamps.size > maxKeys) {
       const oldestKey = [...this.dedupeTimestamps.entries()]
         .sort((a, b) => a[1] - b[1])[0]?.[0];
       if (oldestKey) {
         this.dedupeTimestamps.delete(oldestKey);
+      } else {
+        break;
       }
     }
 
     // 调度发送
     this.scheduleAggregateFlush();
     return true;
+  }
+
+  // 调度溢出缓存区处理
+  private scheduleOverflowProcess(): void {
+    if (this.overflowTimer) return;
+    const now = Date.now();
+    const nextWindowStart = this.rateWindowStart + 60000;
+    const delay = Math.max(0, nextWindowStart - now);
+    this.overflowTimer = (setTimeout(() => {
+      this.overflowTimer = null;
+      this.processOverflowBuffer();
+    }, delay) as unknown) as number;
+  }
+
+  // 处理溢出缓存区
+  private processOverflowBuffer(): void {
+    if (this.overflowBuffer.length === 0) return;
+    const rateLimit = this.config.report?.aggregator?.rateLimitPerMinute ?? 100;
+    // 取出本窗口可处理的数量
+    const toProcess = this.overflowBuffer.splice(0, rateLimit);
+    if (toProcess.length === 1) {
+      this.report(toProcess[0]);
+    } else if (toProcess.length > 1) {
+      this.reportBatch(toProcess);
+    }
+    // 如果还有剩余，继续调度
+    if (this.overflowBuffer.length > 0) {
+      this.scheduleOverflowProcess();
+    }
   }
 
   async reportBatch(errors: ErrorInfo[]): Promise<boolean> {
