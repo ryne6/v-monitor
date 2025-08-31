@@ -1,3 +1,5 @@
+import type { PerformanceHandlerConfig } from './handlers/performanceHandler';
+
 export enum MonitorErrorType {
   JS = 'js',
   RESOURCE = 'resource',
@@ -103,6 +105,8 @@ export interface MonitorConfig {
   resource?: {
     enabled?: boolean;
   };
+  // Performance monitoring configuration
+  performance?: PerformanceHandlerConfig;
 }
 
 // Error information interface

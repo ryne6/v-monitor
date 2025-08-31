@@ -13,7 +13,11 @@ export { Reporter, FetchReporter, XHRReporter } from './reporters';
 // 导出传输层类型
 export type { ReporterTransport } from './reporters/types';
 
+// 导出性能监控类型
+export type { PerformanceHandlerConfig, PerformanceMetrics } from './handlers/performanceHandler';
+
 // 导出错误处理器
 export { JSErrorHandler } from './handlers/jsErrorHandler';
 export { ResourceErrorHandler } from './handlers/resourceErrorHandler';
 export { NetworkErrorHandler } from './handlers/networkErrorHandler';
+export { PerformanceHandler } from './handlers/performanceHandler';

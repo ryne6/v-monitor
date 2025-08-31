@@ -2,6 +2,8 @@ import type { ErrorInfo, MonitorConfig } from './types';
 import { JSErrorHandler } from './handlers/jsErrorHandler';
 import { ResourceErrorHandler } from './handlers/resourceErrorHandler';
 import { NetworkErrorHandler } from './handlers/networkErrorHandler';
+import { PerformanceHandler } from './handlers/performanceHandler';
+import type { PerformanceHandlerConfig } from './handlers/performanceHandler';
 import { Reporter } from './reporters';
 import type { ReporterTransport } from './reporters/types';
 export * from './reporters';
@@ -14,6 +16,7 @@ export class Monitor {
   private jsErrorHandler: JSErrorHandler;
   private resourceErrorHandler: ResourceErrorHandler;
   private networkErrorHandler: NetworkErrorHandler;
+  private performanceHandler!: PerformanceHandler;
   private reporter: Reporter | null = null;
   private config: MonitorConfig;
 
@@ -42,6 +45,7 @@ export class Monitor {
     this.jsErrorHandler = new JSErrorHandler(this.triggerError.bind(this));
     this.resourceErrorHandler = new ResourceErrorHandler(this.triggerError.bind(this));
     this.networkErrorHandler = new NetworkErrorHandler(this.triggerError.bind(this), this.config.network);
+    this.performanceHandler = new PerformanceHandler(this.triggerError.bind(this), this.config.performance);
     
     // 初始化 Reporter
     if (this.config.report?.url) {
@@ -116,5 +120,6 @@ export class Monitor {
     this.jsErrorHandler.destroy();
     this.resourceErrorHandler.destroy();
     this.networkErrorHandler.destroy();
+    this.performanceHandler.destroy();
   }
 }

@@ -96,6 +96,21 @@ const monitor = new Monitor({
   resource: {
     enabled: true,
   },
+  
+  // 性能监控配置
+  performance: {
+    enabled: true,
+    monitorWebVitals: true,    // 监控 Web Vitals
+    monitorResourceTiming: true, // 监控资源加载
+    monitorMemory: true,        // 监控内存使用
+    monitorNetwork: true,       // 监控网络信息
+    thresholds: {
+      fcp: 1800,  // First Contentful Paint 阈值 (ms)
+      lcp: 2500,  // Largest Contentful Paint 阈值 (ms)
+      fid: 100,   // First Input Delay 阈值 (ms)
+      cls: 0.1,   // Cumulative Layout Shift 阈值
+    },
+  },
 });
 ```
 
@@ -215,25 +230,34 @@ monitor.reportError({
 
 ### 性能监控
 
+SDK 自动监控以下性能指标：
+
+#### Web Vitals
+- **FCP (First Contentful Paint)**: 首次内容绘制时间
+- **LCP (Largest Contentful Paint)**: 最大内容绘制时间
+- **FID (First Input Delay)**: 首次输入延迟
+- **CLS (Cumulative Layout Shift)**: 累积布局偏移
+
+#### 系统性能
+- **资源加载时间**: 监控慢资源加载
+- **内存使用情况**: 监控内存泄漏
+- **网络连接信息**: 监控网络状态变化
+
 ```typescript
-// 监控页面加载性能
-window.addEventListener('load', () => {
-  const performance = window.performance;
-  const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-  
-  monitor.reportError({
-    type: MonitorErrorType.PERFORMANCE,
-    message: 'Page load performance',
-    timestamp: Date.now(),
-    url: window.location.href,
-    userAgent: navigator.userAgent,
-    metadata: {
-      loadTime: navigation.loadEventEnd - navigation.loadEventStart,
-      domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
-      firstPaint: performance.getEntriesByName('first-paint')[0]?.startTime,
-      firstContentfulPaint: performance.getEntriesByName('first-contentful-paint')[0]?.startTime,
-    },
-  });
+// 性能监控会自动触发，无需手动配置
+// 当性能指标超过阈值时，会自动上报错误
+
+// 也可以手动上报性能数据
+monitor.reportError({
+  type: MonitorErrorType.PERFORMANCE,
+  message: 'Custom performance data',
+  timestamp: Date.now(),
+  url: window.location.href,
+  userAgent: navigator.userAgent,
+  metadata: {
+    customMetric: 'value',
+    loadTime: performance.now(),
+  },
 });
 ```
 
