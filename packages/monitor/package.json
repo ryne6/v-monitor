@@ -1,14 +1,45 @@
 {
-  "name": "monitor",
+  "name": "@monitor/sdk",
   "version": "0.0.0",
+  "description": "Frontend monitoring SDK for error tracking and performance monitoring",
   "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build:types": "tsc --emitDeclarationOnly --outDir dist",
+    "preview": "vite preview",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
   },
+  "keywords": [
+    "monitoring",
+    "error-tracking",
+    "performance",
+    "frontend",
+    "sdk",
+    "javascript",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
   "devDependencies": {
     "typescript": "~5.8.3",
-    "vite": "^7.1.2"
+    "vite": "^7.1.2",
+    "@types/node": "^20.0.0"
   }
 }

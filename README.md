@@ -77,6 +77,10 @@ pnpm server:logs        # 查看服务日志
 ```bash
 # 构建 SDK
 pnpm build:monitor
+
+# 开发模式
+cd packages/monitor
+npm run dev
 ```
 
 ### 演示应用 (Playground)
@@ -119,6 +123,8 @@ pnpm format
 - **构建工具**: Vite
 - **错误处理**: 自定义错误处理器
 - **上报方式**: Fetch/XHR/Beacon
+- **包名**: @monitor/sdk
+- **支持格式**: ES Module, CommonJS
 
 ### 演示应用
 - **框架**: Vue 3 + Vite
