@@ -6,14 +6,17 @@ import { PrismaClient } from '@prisma/client';
 export class DatabaseConfig {
   private prisma: PrismaClient;
 
-  constructor(private configService: ConfigService) {
+  constructor(private configService: ConfigService | undefined) {
+    const databaseUrl = this.configService?.get?.('DATABASE_URL') ?? process.env.DATABASE_URL;
+    const nodeEnv = this.configService?.get?.('NODE_ENV') ?? process.env.NODE_ENV;
+
     this.prisma = new PrismaClient({
       datasources: {
         db: {
-          url: this.configService.get('DATABASE_URL'),
+          url: databaseUrl,
         },
       },
-      log: this.configService.get('NODE_ENV') !== 'production' ? ['query', 'info', 'warn', 'error'] : ['error'],
+      log: nodeEnv !== 'production' ? ['query', 'info', 'warn', 'error'] : ['error'],
     });
   }
 

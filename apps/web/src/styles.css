@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  @apply bg-gradient-to-br from-brand-50 to-white text-gray-900 antialiased;
+}
+
+.card {
+  @apply bg-white/80 backdrop-blur border border-gray-100 rounded-xl shadow-sm;
+}

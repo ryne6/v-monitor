@@ -8,7 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "monitor": "workspace:*"
+    "@monitor/sdk": "workspace:*"
   },
   "devDependencies": {
     "typescript": "~5.8.3",

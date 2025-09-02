@@ -1,17 +1,28 @@
-import { Injectable, Inject, CACHE_MANAGER } from '@nestjs/common';
-import { Cache } from 'cache-manager';
+import { Injectable, Inject, Optional } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 import { PrismaClient, MonitorErrorType } from '@prisma/client';
 import { ReportErrorDto, ReportBatchErrorDto } from './dto/report-error.dto';
+import { DatabaseConfig } from '../../config/database.config';
 
 @Injectable()
 export class ErrorsService {
   private prisma: PrismaClient;
 
   constructor(
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    private databaseConfig: any, // 临时类型，后续会修复
+    @Optional() @Inject(CACHE_MANAGER) private cacheManager: Cache | undefined,
+    @Optional() private databaseConfig: DatabaseConfig | undefined,
   ) {
-    this.prisma = this.databaseConfig.getPrismaClient();
+    if (this.databaseConfig) {
+      this.prisma = this.databaseConfig.getPrismaClient();
+    } else {
+      // Fallback to env configuration to avoid DI issues blocking startup
+      const databaseUrl = process.env.DATABASE_URL;
+      this.prisma = new PrismaClient({
+        datasources: { db: { url: databaseUrl } },
+        log: process.env.NODE_ENV !== 'production' ? ['warn', 'error'] : ['error'],
+      });
+    }
   }
 
   /**
@@ -147,9 +158,9 @@ export class ErrorsService {
   }) {
     const { projectId, startDate, endDate } = options;
     
-    // 尝试从缓存获取
+    // 尝试从缓存获取（可选）
     const cacheKey = `error_stats:${projectId}:${startDate?.toISOString()}:${endDate?.toISOString()}`;
-    const cached = await this.cacheManager.get(cacheKey);
+    const cached = await this.cacheManager?.get?.(cacheKey);
     if (cached) {
       return cached as any;
     }
@@ -184,18 +195,20 @@ export class ErrorsService {
       return acc;
     }, {} as Record<MonitorErrorType, number>);
     
-    // 按小时统计
-    const byHourResult = await this.prisma.$queryRaw`
-      SELECT DATE_TRUNC('hour', "createdAt") as hour, COUNT(*) as count
-      FROM "errors"
-      WHERE ${projectId ? `"projectId" = ${projectId}` : '1=1'}
-        ${startDate && endDate ? `AND "createdAt" BETWEEN ${startDate} AND ${endDate}` : ''}
-      GROUP BY hour
-      ORDER BY hour ASC
-    `;
+    // 按小时统计（原生 SQL）
+    const byHourResult = await this.prisma.$queryRawUnsafe<any[]>(
+      `SELECT DATE_TRUNC('hour', "createdAt") as hour, COUNT(*) as count
+       FROM "errors"
+       ${projectId ? 'WHERE "projectId" = $1' : ''}
+       ${startDate && endDate ? (projectId ? 'AND' : 'WHERE') + ' "createdAt" BETWEEN $2 AND $3' : ''}
+       GROUP BY hour
+       ORDER BY hour ASC`,
+      ...(projectId ? [projectId] : []),
+      ...(startDate && endDate ? [startDate, endDate] : []),
+    );
     
-    const byHour = (byHourResult as any[]).reduce((acc, item) => {
-      acc[item.hour] = parseInt(item.count);
+    const byHour = (byHourResult || []).reduce((acc, item) => {
+      acc[item.hour] = parseInt(item.count, 10);
       return acc;
     }, {} as Record<string, number>);
     
@@ -203,14 +216,8 @@ export class ErrorsService {
     const byUrlResult = await this.prisma.error.groupBy({
       by: ['url'],
       where,
-      _count: {
-        url: true,
-      },
-      orderBy: {
-        _count: {
-          url: 'desc',
-        },
-      },
+      _count: { url: true },
+      orderBy: { _count: { url: 'desc' } },
       take: 10,
     });
     
@@ -221,21 +228,20 @@ export class ErrorsService {
     
     const stats = { total, byType, byHour, byUrl };
     
-    // 缓存结果（5分钟）
-    await this.cacheManager.set(cacheKey, stats, 300);
+    // 缓存结果（5分钟）（可选）
+    await this.cacheManager?.set?.(cacheKey, stats, 300);
     
     return stats;
   }
 
   /**
-   * 更新错误统计缓存
+   * 更新错误统计缓存（可选）
    */
   private async updateErrorStats(type: MonitorErrorType, projectId?: string): Promise<void> {
     const cacheKey = `error_stats:${projectId}:*`;
-    // 清除相关缓存，让下次查询重新计算
-    const keys = await this.cacheManager.store.keys(cacheKey);
-    if (keys.length > 0) {
-      await Promise.all(keys.map(key => this.cacheManager.del(key)));
+    const keys = (await (this.cacheManager as any)?.store?.keys?.(cacheKey)) || [];
+    if (Array.isArray(keys) && keys.length > 0) {
+      await Promise.all(keys.map((key: string) => this.cacheManager?.del?.(key)));
     }
   }
 
@@ -243,9 +249,7 @@ export class ErrorsService {
    * 删除错误记录
    */
   async deleteError(id: string): Promise<void> {
-    await this.prisma.error.delete({
-      where: { id },
-    });
+    await this.prisma.error.delete({ where: { id } });
   }
 
   /**
@@ -256,11 +260,7 @@ export class ErrorsService {
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
     
     const result = await this.prisma.error.deleteMany({
-      where: {
-        createdAt: {
-          lt: cutoffDate,
-        },
-      },
+      where: { createdAt: { lt: cutoffDate } },
     });
     
     return result.count;

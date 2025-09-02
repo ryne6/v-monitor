@@ -39,22 +39,22 @@ export class ErrorsController {
   @ApiOperation({ summary: '获取错误列表' })
   @ApiQuery({ name: 'page', required: false, description: '页码', type: Number })
   @ApiQuery({ name: 'limit', required: false, description: '每页数量', type: Number })
-  @ApiQuery({ name: 'type', required: false, enum: MonitorErrorType, description: '错误类型' })
+  @ApiQuery({ name: 'type', required: false, enum: ['JS','RESOURCE','NETWORK','PERFORMANCE'], description: '错误类型' })
   @ApiQuery({ name: 'projectId', required: false, description: '项目ID' })
   @ApiQuery({ name: 'startDate', required: false, description: '开始日期' })
   @ApiQuery({ name: 'endDate', required: false, description: '结束日期' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getErrors(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
     @Query('type') type?: MonitorErrorType,
     @Query('projectId') projectId?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
     const options = {
-      page,
-      limit,
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
       type,
       projectId,
       startDate: startDate ? new Date(startDate) : undefined,
@@ -97,8 +97,8 @@ export class ErrorsController {
   @ApiOperation({ summary: '清理过期错误记录' })
   @ApiQuery({ name: 'daysToKeep', required: false, description: '保留天数', type: Number })
   @ApiResponse({ status: 200, description: '清理完成' })
-  async cleanupOldErrors(@Query('daysToKeep') daysToKeep?: number) {
-    const deletedCount = await this.errorsService.cleanupOldErrors(daysToKeep);
+  async cleanupOldErrors(@Query('daysToKeep') daysToKeep?: string) {
+    const deletedCount = await this.errorsService.cleanupOldErrors(daysToKeep ? Number(daysToKeep) : undefined);
     return { deletedCount };
   }
 }
