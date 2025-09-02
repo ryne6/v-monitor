@@ -58,7 +58,6 @@ export class PerformanceHandler {
   private clsObserver: PerformanceObserver | null = null;
   private lcpObserver: PerformanceObserver | null = null;
   private fidObserver: PerformanceObserver | null = null;
-  private navigationStart: number = 0;
 
   constructor(onError: (error: ErrorInfo) => void, config: PerformanceHandlerConfig = {}) {
     this.onError = onError;
@@ -83,9 +82,6 @@ export class PerformanceHandler {
   }
 
   private init() {
-    // 获取页面加载开始时间
-    this.navigationStart = performance.timing?.navigationStart || performance.now();
-
     // 监控 Web Vitals
     if (this.config.monitorWebVitals) {
       this.initWebVitalsMonitoring();

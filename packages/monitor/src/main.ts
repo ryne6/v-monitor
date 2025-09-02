@@ -3,7 +3,6 @@ import { JSErrorHandler } from './handlers/jsErrorHandler';
 import { ResourceErrorHandler } from './handlers/resourceErrorHandler';
 import { NetworkErrorHandler } from './handlers/networkErrorHandler';
 import { PerformanceHandler } from './handlers/performanceHandler';
-import type { PerformanceHandlerConfig } from './handlers/performanceHandler';
 import { Reporter } from './reporters';
 import type { ReporterTransport } from './reporters/types';
 export * from './reporters';
