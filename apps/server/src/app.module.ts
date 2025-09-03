@@ -1,21 +1,12 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { ScheduleModule } from '@nestjs/schedule';
-import { ErrorsModule } from './modules/errors/errors.module';
-import { AnalyticsModule } from './modules/analytics/analytics.module';
-import { DatabaseConfig } from './config/database.config';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { ErrorsModule } from './errors/errors.module';
+import { HealthController } from './health.controller';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
-    }),
-    ScheduleModule.forRoot(),
-    ErrorsModule,
-    AnalyticsModule,
-  ],
-  providers: [DatabaseConfig],
-  exports: [DatabaseConfig],
+  imports: [ErrorsModule],
+  controllers: [AppController, HealthController],
+  providers: [AppService],
 })
 export class AppModule {}

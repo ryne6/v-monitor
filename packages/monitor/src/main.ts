@@ -60,11 +60,6 @@ export class Monitor {
   reportError(error: ErrorInfo) {
     // 触发错误处理器
     this.triggerError(error);
-    
-    // 如果有配置上报，则进行上报
-    if (this.reporter) {
-      this.reporter.report(error);
-    }
   }
 
   // 设置 Reporter
@@ -87,6 +82,16 @@ export class Monitor {
         console.error('Error handler failed:', e);
       }
     });
+
+    // 自动上报：任何被捕获的错误都会尝试通过 reporter 上报
+    if (this.reporter) {
+      try {
+        this.reporter.report(error);
+      } catch (e) {
+        // 避免上报过程影响捕获流程
+        console.error('Auto report failed:', e);
+      }
+    }
   }
 
   // Get current configuration

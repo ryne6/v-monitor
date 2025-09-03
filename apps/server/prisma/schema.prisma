@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -18,113 +15,30 @@ enum MonitorErrorType {
 }
 
 model Error {
-  id                String           @id @default(cuid())
-  type              MonitorErrorType
-  message           String
-  stack             String?
-  filename          String?
-  line              Int?
-  column            Int?
-  timestamp         BigInt
-  url               String
-  userAgent         String
-  
-  // 网络请求相关字段
-  requestMethod     String?
-  requestUrl        String?
-  responseStatus    Int?
+  id                 String            @id @default(cuid())
+  type               MonitorErrorType
+  message            String
+  stack              String?
+  filename           String?
+  line               Int?
+  column             Int?
+  timestamp          BigInt
+  url                String
+  userAgent          String
+  requestMethod      String?
+  requestUrl         String?
+  responseStatus     Int?
   responseStatusText String?
-  requestDuration   Int?
-  requestType       String?
-  requestQuery      String?
-  requestBody       Json?
-  requestHeaders    Json?
-  responseBody      Json?
-  responseHeaders   Json?
-  
-  // 扩展字段
-  metadata          Json?
-  
-  // 会话信息
-  sessionId         String?
-  userId            String?
-  projectId         String?
-  
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-
-  @@map("errors")
-  @@index([type, createdAt])
-  @@index([url, createdAt])
-  @@index([userAgent, createdAt])
-}
-
-model UserSession {
-  id              String    @id @default(cuid())
-  sessionId       String
-  userId          String?
-  projectId       String?
-  url             String
-  userAgent       String
-  ip              String?
-  country         String?
-  city            String?
-  browser         String?
-  os              String?
-  device          String?
-  screenResolution String?
-  metadata        Json?
-  startTime       BigInt
-  endTime         BigInt?
-  duration        Int?
-  isActive        Boolean   @default(false)
-  
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  @@map("user_sessions")
-  @@index([sessionId, createdAt])
-  @@index([userId, createdAt])
-  @@index([projectId, createdAt])
-}
-
-model Performance {
-  id                      String    @id @default(cuid())
-  sessionId               String
-  projectId               String?
-  url                     String
-  timestamp               BigInt
-  
-  // 页面加载性能
-  navigationStart         Int?
-  loadEventEnd            Int?
-  domContentLoadedEventEnd Int?
-  firstPaint              Int?
-  firstContentfulPaint    Int?
-  largestContentfulPaint  Int?
-  firstInputDelay         Int?
-  cumulativeLayoutShift   Int?
-  
-  // 资源加载性能
-  resourceTiming          Json?
-  
-  // 内存使用
-  memoryUsed              Int?
-  memoryLimit             Int?
-  
-  // 网络信息
-  connectionType          String?
-  downlink                Int?
-  rtt                     Int?
-  
-  // 扩展字段
-  metadata                Json?
-  
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
-
-  @@map("performance")
-  @@index([sessionId, createdAt])
-  @@index([projectId, createdAt])
-  @@index([url, createdAt])
+  requestDuration    Int?
+  requestType        String?
+  requestQuery       String?
+  requestBody        Json?
+  requestHeaders     Json?
+  responseBody       Json?
+  responseHeaders    Json?
+  metadata           Json?
+  sessionId          String?
+  userId             String?
+  projectId          String?
+  createdAt          DateTime          @default(now())
 }

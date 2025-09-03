@@ -380,9 +380,9 @@ export abstract class BaseTransport implements ReporterTransport {
 
     // 发送聚合后的错误
     if (batch.length === 1) {
-      this.report(batch[0]);
+      this.sendReport(batch[0]);
     } else if (batch.length > 1) {
-      this.reportBatch(batch);
+      this.sendBatchReport(batch);
     }
   }
 

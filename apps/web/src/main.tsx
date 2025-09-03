@@ -6,8 +6,10 @@ import App from './App';
 import Dashboard from './pages/Dashboard';
 import Errors from './pages/Errors';
 import Stats from './pages/Stats';
+import { getMonitor } from './sdk/monitor';
 import './styles.css';
 
+getMonitor();
 const queryClient = new QueryClient();
 
 const router = createBrowserRouter(
