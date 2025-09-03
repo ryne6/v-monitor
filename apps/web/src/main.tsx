@@ -6,6 +6,7 @@ import App from './App';
 import Dashboard from './pages/Dashboard';
 import Errors from './pages/Errors';
 import Stats from './pages/Stats';
+import Test from './pages/Test';
 import { getMonitor } from './sdk/monitor';
 import './styles.css';
 
@@ -21,12 +22,12 @@ const router = createBrowserRouter(
         { index: true, element: <Dashboard /> },
         { path: 'errors', element: <Errors /> },
         { path: 'stats', element: <Stats /> },
+        { path: 'test', element: <Test /> },
       ],
     },
   ],
   {
     future: {
-      v7_startTransition: true,
       v7_relativeSplatPath: true,
     },
   },
