@@ -1,6 +1,6 @@
 # @monitor/sdk
 
-前端监控 SDK，提供错误追踪、性能监控和用户行为分析功能。
+前端监控 SDK，提供错误追踪与性能监控，支持批量上报、重试、去重与限流。
 
 ## 特性
 
@@ -50,7 +50,7 @@ monitor.reportError({
 });
 ```
 
-### 高级配置
+### 高级配置（含 project/version 注入）
 
 ```typescript
 import { Monitor, MonitorErrorType } from '@monitor/sdk';
@@ -111,6 +111,10 @@ const monitor = new Monitor({
       cls: 0.1,   // Cumulative Layout Shift 阈值
     },
   },
+
+  // 项目标识（用于 sourcemap 与数据归属）
+  projectId: '__PROJECT_ID__',
+  version: '__APP_VERSION__',
 });
 ```
 
@@ -230,7 +234,7 @@ monitor.reportError({
 
 ### 性能监控
 
-SDK 自动监控以下性能指标：
+SDK 自动监控以下性能指标，并将指标置于 `metadata` 字段：
 
 #### Web Vitals
 - **FCP (First Contentful Paint)**: 首次内容绘制时间
@@ -290,7 +294,7 @@ monitor.setReporter(customReporter);
 - Safari >= 12
 - Edge >= 79
 
-## 开发
+## 构建与发布
 
 ```bash
 # 安装依赖
@@ -304,6 +308,9 @@ npm run build
 
 # 预览构建结果
 npm run preview
+
+# 生成类型声明（vite-plugin-dts 已自动生成）
+npm run build
 ```
 
 ## 许可证

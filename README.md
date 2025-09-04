@@ -1,13 +1,13 @@
 # V-Monitor
 
-前端监控系统，包含监控 SDK、后端服务和演示应用。
+前端监控系统：前端 SDK（@monitor/sdk）+ 后端（NestJS + Prisma + PostgreSQL）+ 可视化 Web。
 
 ## 项目结构
 
 ```
 ├── packages/
-│   ├── monitor/          # 监控 SDK
-│   └── playground/       # 演示应用
+│   ├── monitor/          # 监控 SDK (@monitor/sdk)
+│   └── playground/       # demo（可选）
 ├── apps/
 │   ├── server/           # 后端服务 (NestJS + Prisma)
 │   └── web/              # Web 管理界面
@@ -22,31 +22,30 @@
 pnpm install
 ```
 
-### 2. 启动后端服务
+### 2. 数据库与 Prisma（如需）
 
 ```bash
-# 启动所有服务 (PostgreSQL + Redis + Server)
-pnpm server:up
-
-# 生成 Prisma 客户端
 pnpm db:generate
 
-# 运行数据库迁移
 pnpm db:migrate
+# 或直接部署迁移
+pnpm db:migrate:deploy
 ```
 
-### 3. 启动演示应用
+### 3. 启动服务与 Web
 
 ```bash
-# 启动 playground 演示应用
-pnpm dev
+# 启动后端（Nest 开发模式）
+pnpm dev:server
+
+# 启动 Web 前端
+pnpm dev:web
 ```
 
-### 4. 访问服务
+### 4. 访问
 
-- **演示应用**: http://localhost:3000
-- **后端 API**: http://localhost:3001
-- **API 文档**: http://localhost:3001/api/docs
+- **Web 前端**: http://localhost:5173
+- **后端 API**: http://localhost:3001/api/v1
 - **Prisma Studio**: http://localhost:5555 (运行 `pnpm db:studio` 后)
 
 ## 开发命令
@@ -63,7 +62,7 @@ pnpm build:server
 # 数据库相关
 pnpm db:generate        # 生成 Prisma 客户端
 pnpm db:migrate         # 创建并应用迁移
-pnpm db:migrate:deploy  # 部署迁移到生产环境
+pnpm db:migrate:deploy  # 部署迁移
 pnpm db:studio          # 打开 Prisma Studio
 
 # Docker 管理
@@ -72,7 +71,7 @@ pnpm server:down        # 停止所有服务
 pnpm server:logs        # 查看服务日志
 ```
 
-### 监控 SDK (Monitor)
+### 监控 SDK (@monitor/sdk)
 
 ```bash
 # 构建 SDK
@@ -83,14 +82,16 @@ cd packages/monitor
 npm run dev
 ```
 
-### 演示应用 (Playground)
+### Web 前端 (apps/web)
 
 ```bash
-# 开发模式
-pnpm dev
+# 开发
+pnpm dev:web
 
-# 构建
-pnpm build:playground
+# 一键构建并复制 sourcemap 至服务端
+pnpm -F @monitor/web run build:with-maps
+# 或指定输出目录
+SOURCEMAP_DIR=/abs/path/to/sourcemaps pnpm -F @monitor/web run build:with-maps
 ```
 
 ### 通用命令
@@ -113,9 +114,8 @@ pnpm format
 
 ### 后端服务
 - **框架**: NestJS (TypeScript)
-- **数据库**: PostgreSQL + Redis
+- **数据库**: PostgreSQL
 - **ORM**: Prisma
-- **API 文档**: Swagger/OpenAPI
 - **容器化**: Docker + Docker Compose
 
 ### 监控 SDK
@@ -126,34 +126,24 @@ pnpm format
 - **包名**: @monitor/sdk
 - **支持格式**: ES Module, CommonJS
 
-### 演示应用
-- **框架**: Vue 3 + Vite
-- **语言**: TypeScript
-- **UI**: 自定义组件
+### Web 前端
+- **框架**: React + Vite + Tailwind + TanStack Query + Recharts
 
 ## 环境配置
 
 ### 后端服务环境变量
 
-复制 `apps/server/env.example` 到 `apps/server/.env` 并配置：
+在 `apps/server/.env` 中配置：
 
 ```env
-# 应用配置
-NODE_ENV=development
+# 应用
 PORT=3001
-ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
 
-# 数据库配置 (Prisma)
+# Prisma 数据库
 DATABASE_URL="postgresql://postgres:password@localhost:5432/monitor?schema=public"
 
-# Redis 配置
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_PASSWORD=
-REDIS_DB=0
-
-# 日志配置
-LOG_LEVEL=info
+# Sourcemap 目录（用于堆栈反混淆）
+SOURCEMAP_DIR=/abs/path/to/sourcemaps  # 推荐：apps/server/sourcemaps
 ```
 
 ## 开发指南
@@ -162,15 +152,12 @@ LOG_LEVEL=info
 
 1. 在 `apps/server/prisma/schema.prisma` 中的 `MonitorErrorType` 枚举中添加新类型
 2. 运行 `pnpm db:generate` 重新生成客户端
-3. 在 `apps/server/src/modules/errors/errors.service.ts` 中添加处理逻辑
-4. 更新 API 文档
+3. 在 `apps/server/src/errors/errors.service.ts` 中添加处理逻辑
 
-### 添加新的性能指标
+### 前端 SDK 传参
 
-1. 在 `apps/server/prisma/schema.prisma` 中的 `Performance` 模型中添加新字段
-2. 创建对应的 DTO
-3. 在 `apps/server/src/modules/analytics/` 中添加处理逻辑
-4. 更新 API 接口
+- 在 `Monitor` 初始化时传入 `projectId` 与 `version`（Web 里已通过 Vite 注入包版本）。
+- SDK 上报体包含：`projectId`、`version`、`metadata`（性能指标等）。
 
 ## 部署
 

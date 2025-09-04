@@ -24,7 +24,7 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Monitor Server (NestJS + Prisma + PostgreSQL). Provides error reporting APIs and sourcemap-based stack resolution.
 
 ## Installation
 
@@ -45,7 +45,43 @@ $ pnpm run start:dev
 $ pnpm run start:prod
 ```
 
-## Test
+## Database (Prisma)
+
+```bash
+# generate client
+pnpm db:generate
+
+# run migrations
+pnpm db:migrate
+
+# deploy migrations
+pnpm db:deploy
+
+# prisma studio
+pnpm prisma studio
+```
+
+## Env
+
+Create `.env`:
+
+```env
+PORT=3001
+DATABASE_URL="postgresql://postgres:password@localhost:5432/monitor?schema=public"
+SOURCEMAP_DIR=/abs/path/to/sourcemaps
+```
+
+## APIs
+
+- POST `/api/v1/errors/report` — single error
+- POST `/api/v1/errors/report/batch` — batch errors
+- GET `/api/v1/errors` — list with filters: `page,limit,type,projectId,startDate,endDate`
+- GET `/api/v1/errors/stats` — stats by type/hour/url
+- POST `/api/v1/sourcemaps/resolve` — resolve stack using local sourcemaps
+
+## Logging
+
+Winston logs under `apps/server/logs/`.
 
 ```bash
 # unit tests
@@ -70,4 +106,4 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 
 ## License
 
-Nest is [MIT licensed](LICENSE).
+MIT
