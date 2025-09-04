@@ -26,6 +26,7 @@ export default function App() {
             <NavItem to="/errors" label="Errors" />
             <NavItem to="/stats" label="Stats" />
             <NavItem to="/test" label="Test" />
+            <NavItem to="/lab" label="Lab" />
           </nav>
         </div>
       </header>

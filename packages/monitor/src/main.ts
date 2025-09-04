@@ -40,6 +40,7 @@ export class Monitor {
       replay: {
         enabled: true,
         compress: true,
+        useRrweb: false,
         ...config.replay
       },
       resource: {

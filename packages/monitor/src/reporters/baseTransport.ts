@@ -298,13 +298,16 @@ export abstract class BaseTransport implements ReporterTransport {
       const retriableItems = Array.from(this.retryQueue.entries())
         .filter(([_, item]) => item.nextRetryTime <= currentTime);
 
+      // 在开始重试前，先将这些项从队列中移除；失败时再加入队列
+      retriableItems.forEach(([key]) => this.retryQueue.delete(key));
+
       // 批量处理到期的重试项
       if (retriableItems.length > 1) {
         const errors = retriableItems.map(([_, item]) => item.error);
         try {
           const success = await this.sendBatchReport(errors);
           if (success) {
-            retriableItems.forEach(([key]) => this.retryQueue.delete(key));
+            // 已在重试前移除，无需处理
           }
         } catch {
           // 批量重试失败，降级到单个重试
@@ -392,18 +395,24 @@ export abstract class BaseTransport implements ReporterTransport {
   }
 
   private async retryIndividually(items: [string, { error: ErrorInfo; attempts: number; nextRetryTime: number; }][]): Promise<void> {
-    for (const [key, item] of items) {
+    for (const [_, item] of items) {
       try {
         const success = await this.sendReport(item.error);
         if (success) {
-          this.retryQueue.delete(key);
+          // 已在重试前移除，无需处理
         } else {
-          // 更新下次重试时间
-          item.nextRetryTime = Date.now() + this.calculateRetryDelay(item.attempts);
+          // 失败则重新加入队列（尝试次数+1）
+          const attempts = item.attempts + 1;
+          const nextRetryTime = Date.now() + this.calculateRetryDelay(attempts);
+          const key = this.getErrorKey(item.error);
+          this.retryQueue.set(key, { error: item.error, attempts, nextRetryTime });
         }
       } catch {
-        // 发送失败，更新下次重试时间
-        item.nextRetryTime = Date.now() + this.calculateRetryDelay(item.attempts);
+        // 异常也视为失败，重新加入队列（尝试次数+1）
+        const attempts = item.attempts + 1;
+        const nextRetryTime = Date.now() + this.calculateRetryDelay(attempts);
+        const key = this.getErrorKey(item.error);
+        this.retryQueue.set(key, { error: item.error, attempts, nextRetryTime });
       }
     }
   }

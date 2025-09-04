@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Errors from './pages/Errors';
 import Stats from './pages/Stats';
 import Test from './pages/Test';
+import PerfLab from './pages/PerfLab';
 import { getMonitor } from './sdk/monitor';
 import './styles.css';
 import './shim-rrweb';
@@ -24,6 +25,7 @@ const router = createBrowserRouter(
         { path: 'errors', element: <Errors /> },
         { path: 'stats', element: <Stats /> },
         { path: 'test', element: <Test /> },
+        { path: 'lab', element: <PerfLab /> },
       ],
     },
   ],
