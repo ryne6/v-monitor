@@ -330,15 +330,10 @@ export abstract class BaseTransport implements ReporterTransport {
       const status = (e as any).responseStatus || 0;
       return `${type}|${method}|${url}|${status}`;
     }
-    if ((e as any).tagName || e.filename) {
-      const tag = ((e as any).tagName || '').toString().toLowerCase();
-      const path = this.normalizeUrlPath(e.filename || '');
-      return `${type}|${tag}|${path}`;
-    }
     const msg = (e.message || '').slice(0, 200);
-    const file = this.normalizeUrlPath(e.filename || '');
+    const url = e.url || '';
     const stack = this.normalizeStack(e.stack || '');
-    return `${type}|${msg}|${file}|${stack}`;
+    return `${type}|${msg}|${url}|${stack}`;
   }
 
   private normalizeUrlPath(url: string): string {
