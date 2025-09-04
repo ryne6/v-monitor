@@ -88,6 +88,7 @@ export class NetworkErrorHandler {
 
       const startTime = Date.now();
       const method = init?.method || 'GET';
+      const stack = new Error().stack;
 
       // Extract request details
       const requestDetails = self.extractRequestDetails(url, init);
@@ -111,6 +112,7 @@ export class NetworkErrorHandler {
             duration,
             type: 'fetch',
             message: `HTTP ${response.status}: ${response.statusText}`,
+            stack,
             ...requestDetails,
             ...responseDetails,
           });
@@ -130,6 +132,7 @@ export class NetworkErrorHandler {
           type: 'fetch',
           message:
             error instanceof Error ? error.message : 'Network request failed',
+          stack: error instanceof Error ? error.stack : stack,
           error: error instanceof Error ? error : undefined,
           ...requestDetails,
         });
@@ -174,6 +177,7 @@ export class NetworkErrorHandler {
       const monitor = (this as any)._monitor;
       if (monitor) {
         monitor.startTime = Date.now();
+        monitor.stack = new Error().stack;
         monitor.requestDetails.requestBody = networkHandler.serializeBody(body);
 
         // Listen to various events
@@ -187,6 +191,7 @@ export class NetworkErrorHandler {
             duration,
             type: 'xhr',
             message: 'XMLHttpRequest failed',
+            stack: monitor.stack,
             ...monitor.requestDetails,
           });
         });
@@ -198,6 +203,7 @@ export class NetworkErrorHandler {
             method: monitor.method,
             status: this.status || 0,
             statusText: 'Timeout',
+            stack: monitor.stack,
             duration,
             type: 'xhr',
             message: 'XMLHttpRequest timeout',
@@ -255,6 +261,7 @@ export class NetworkErrorHandler {
               type: 'xhr',
               message: `HTTP ${this.status}: ${this.statusText}`,
               ...monitor.requestDetails,
+              stack: monitor.stack,
               responseBody,
               responseHeaders,
             });
@@ -395,6 +402,7 @@ export class NetworkErrorHandler {
     duration: number;
     type: 'fetch' | 'xhr';
     message: string;
+    stack?: string;
     error?: Error;
     requestQuery?: string;
     requestBody?: any;
@@ -421,7 +429,7 @@ export class NetworkErrorHandler {
       requestHeaders: details.requestHeaders,
       responseBody: details.responseBody,
       responseHeaders: details.responseHeaders,
-      stack: details.error?.stack,
+      stack: details.stack,
     };
 
     this.errorCallback(errorInfo);

@@ -1,4 +1,12 @@
-import { IsEnum, IsNumber, IsOptional, IsString, IsUrl, IsObject, ValidateNested, IsArray } from 'class-validator';
+import {
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsObject,
+  ValidateNested,
+  IsArray,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum ErrorTypeDto {
@@ -18,7 +26,7 @@ export class ReportErrorDto {
   @IsNumber()
   timestamp: number;
 
-  @IsUrl()
+  @IsString()
   url: string;
 
   @IsString()

@@ -30,6 +30,19 @@ export default function Test() {
     }
   };
 
+  const triggerXHRError = () => {
+    log('Trigger Network error (404 XHR)');
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', '/api/v1/__xhr_not_exists__?t=' + Date.now());
+      xhr.onload = () => log('XHR onload status=' + xhr.status);
+      xhr.onerror = () => log('XHR onerror');
+      xhr.send();
+    } catch (e) {
+      // ignore
+    }
+  };
+
   const triggerManualReport = () => {
     log('Trigger manual report');
     const monitor = getMonitor();
@@ -49,7 +62,7 @@ export default function Test() {
         <p className="text-sm text-gray-500">Trigger different errors to verify reporting.</p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <button className="px-4 py-2 rounded-md bg-red-500 text-white" onClick={triggerJsError}>
           JS Error
         </button>
@@ -57,7 +70,10 @@ export default function Test() {
           Resource Error
         </button>
         <button className="px-4 py-2 rounded-md bg-blue-600 text-white" onClick={triggerNetworkError}>
-          Network Error
+          Fetch Error
+        </button>
+        <button className="px-4 py-2 rounded-md bg-indigo-600 text-white" onClick={triggerXHRError}>
+          XHR Error
         </button>
         <button className="px-4 py-2 rounded-md bg-gray-800 text-white" onClick={triggerManualReport}>
           Manual Report

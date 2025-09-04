@@ -1,0 +1,106 @@
+{"context":"NestFactory","level":"info","message":"Starting Nest application...","timestamp":"2025-09-04T07:43:02.260Z"}
+{"context":"InstanceLoader","level":"info","message":"AppModule dependencies initialized","timestamp":"2025-09-04T07:43:02.564Z"}
+{"context":"InstanceLoader","level":"info","message":"ErrorsModule dependencies initialized","timestamp":"2025-09-04T07:43:02.564Z"}
+{"context":"RoutesResolver","level":"info","message":"AppController {/api/v1}:","timestamp":"2025-09-04T07:43:02.570Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1, GET} route","timestamp":"2025-09-04T07:43:02.573Z"}
+{"context":"RoutesResolver","level":"info","message":"HealthController {/api/v1/health}:","timestamp":"2025-09-04T07:43:02.573Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/health, GET} route","timestamp":"2025-09-04T07:43:02.574Z"}
+{"context":"RoutesResolver","level":"info","message":"ErrorsController {/api/v1/errors}:","timestamp":"2025-09-04T07:43:02.574Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/report, POST} route","timestamp":"2025-09-04T07:43:02.574Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/report/batch, POST} route","timestamp":"2025-09-04T07:43:02.575Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors, GET} route","timestamp":"2025-09-04T07:43:02.576Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/stats, GET} route","timestamp":"2025-09-04T07:43:02.576Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/:id, DELETE} route","timestamp":"2025-09-04T07:43:02.576Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/error, GET} route","timestamp":"2025-09-04T07:43:02.576Z"}
+{"context":"NestApplication","level":"info","message":"Nest application successfully started","timestamp":"2025-09-04T07:43:02.578Z"}
+{"context":"NestFactory","level":"info","message":"Starting Nest application...","timestamp":"2025-09-04T07:43:13.093Z"}
+{"context":"InstanceLoader","level":"info","message":"AppModule dependencies initialized","timestamp":"2025-09-04T07:43:13.104Z"}
+{"context":"InstanceLoader","level":"info","message":"ErrorsModule dependencies initialized","timestamp":"2025-09-04T07:43:13.104Z"}
+{"context":"RoutesResolver","level":"info","message":"AppController {/api/v1}:","timestamp":"2025-09-04T07:43:13.107Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1, GET} route","timestamp":"2025-09-04T07:43:13.108Z"}
+{"context":"RoutesResolver","level":"info","message":"HealthController {/api/v1/health}:","timestamp":"2025-09-04T07:43:13.108Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/health, GET} route","timestamp":"2025-09-04T07:43:13.108Z"}
+{"context":"RoutesResolver","level":"info","message":"ErrorsController {/api/v1/errors}:","timestamp":"2025-09-04T07:43:13.108Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/report, POST} route","timestamp":"2025-09-04T07:43:13.108Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/report/batch, POST} route","timestamp":"2025-09-04T07:43:13.109Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors, GET} route","timestamp":"2025-09-04T07:43:13.109Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/stats, GET} route","timestamp":"2025-09-04T07:43:13.109Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/:id, DELETE} route","timestamp":"2025-09-04T07:43:13.109Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/error, GET} route","timestamp":"2025-09-04T07:43:13.109Z"}
+{"context":"NestApplication","level":"info","message":"Nest application successfully started","timestamp":"2025-09-04T07:43:13.110Z"}
+{"context":"ErrorsController","level":"info","message":"stats called","timestamp":"2025-09-04T07:43:20.429Z"}
+{"context":"ErrorsController","level":"info","message":"list called page=1 limit=20","timestamp":"2025-09-04T07:43:23.104Z"}
+{"context":"ErrorsController","level":"info","message":"stats called","timestamp":"2025-09-04T07:43:30.511Z"}
+{"context":"ErrorsController","level":"info","message":"list called page=1 limit=20","timestamp":"2025-09-04T07:43:31.469Z"}
+{"context":"ErrorsController","level":"info","message":"stats called","timestamp":"2025-09-04T07:43:40.216Z"}
+{"context":"ErrorsController","level":"info","message":"list called page=1 limit=20","timestamp":"2025-09-04T07:43:40.995Z"}
+{"context":"ErrorsController","level":"info","message":"stats called","timestamp":"2025-09-04T07:43:42.548Z"}
+{"context":"ErrorsController","level":"info","message":"stats called","timestamp":"2025-09-04T07:43:43.461Z"}
+{"context":"ErrorsController","level":"info","message":"stats called","timestamp":"2025-09-04T07:44:38.483Z"}
+{"context":"NestFactory","level":"info","message":"Starting Nest application...","timestamp":"2025-09-04T07:44:55.605Z"}
+{"context":"InstanceLoader","level":"info","message":"AppModule dependencies initialized","timestamp":"2025-09-04T07:44:55.615Z"}
+{"context":"InstanceLoader","level":"info","message":"ErrorsModule dependencies initialized","timestamp":"2025-09-04T07:44:55.615Z"}
+{"context":"RoutesResolver","level":"info","message":"AppController {/api/v1}:","timestamp":"2025-09-04T07:44:55.617Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1, GET} route","timestamp":"2025-09-04T07:44:55.618Z"}
+{"context":"RoutesResolver","level":"info","message":"HealthController {/api/v1/health}:","timestamp":"2025-09-04T07:44:55.618Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/health, GET} route","timestamp":"2025-09-04T07:44:55.619Z"}
+{"context":"RoutesResolver","level":"info","message":"ErrorsController {/api/v1/errors}:","timestamp":"2025-09-04T07:44:55.619Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/report, POST} route","timestamp":"2025-09-04T07:44:55.619Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/report/batch, POST} route","timestamp":"2025-09-04T07:44:55.619Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors, GET} route","timestamp":"2025-09-04T07:44:55.620Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/stats, GET} route","timestamp":"2025-09-04T07:44:55.620Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/:id, DELETE} route","timestamp":"2025-09-04T07:44:55.620Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/error, GET} route","timestamp":"2025-09-04T07:44:55.620Z"}
+{"context":"NestApplication","level":"info","message":"Nest application successfully started","timestamp":"2025-09-04T07:44:55.621Z"}
+{"context":"NestFactory","level":"info","message":"Starting Nest application...","timestamp":"2025-09-04T07:45:18.898Z"}
+{"context":"InstanceLoader","level":"info","message":"AppModule dependencies initialized","timestamp":"2025-09-04T07:45:18.908Z"}
+{"context":"InstanceLoader","level":"info","message":"ErrorsModule dependencies initialized","timestamp":"2025-09-04T07:45:18.909Z"}
+{"context":"RoutesResolver","level":"info","message":"AppController {/api/v1}:","timestamp":"2025-09-04T07:45:18.911Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1, GET} route","timestamp":"2025-09-04T07:45:18.912Z"}
+{"context":"RoutesResolver","level":"info","message":"HealthController {/api/v1/health}:","timestamp":"2025-09-04T07:45:18.912Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/health, GET} route","timestamp":"2025-09-04T07:45:18.913Z"}
+{"context":"RoutesResolver","level":"info","message":"ErrorsController {/api/v1/errors}:","timestamp":"2025-09-04T07:45:18.913Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/report, POST} route","timestamp":"2025-09-04T07:45:18.913Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/report/batch, POST} route","timestamp":"2025-09-04T07:45:18.913Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors, GET} route","timestamp":"2025-09-04T07:45:18.914Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/stats, GET} route","timestamp":"2025-09-04T07:45:18.914Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/:id, DELETE} route","timestamp":"2025-09-04T07:45:18.914Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/error, GET} route","timestamp":"2025-09-04T07:45:18.914Z"}
+{"context":"NestApplication","level":"info","message":"Nest application successfully started","timestamp":"2025-09-04T07:45:18.915Z"}
+{"context":"NestFactory","level":"info","message":"Starting Nest application...","timestamp":"2025-09-04T07:45:19.644Z"}
+{"context":"InstanceLoader","level":"info","message":"AppModule dependencies initialized","timestamp":"2025-09-04T07:45:19.654Z"}
+{"context":"InstanceLoader","level":"info","message":"ErrorsModule dependencies initialized","timestamp":"2025-09-04T07:45:19.654Z"}
+{"context":"RoutesResolver","level":"info","message":"AppController {/api/v1}:","timestamp":"2025-09-04T07:45:19.656Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1, GET} route","timestamp":"2025-09-04T07:45:19.657Z"}
+{"context":"RoutesResolver","level":"info","message":"HealthController {/api/v1/health}:","timestamp":"2025-09-04T07:45:19.658Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/health, GET} route","timestamp":"2025-09-04T07:45:19.658Z"}
+{"context":"RoutesResolver","level":"info","message":"ErrorsController {/api/v1/errors}:","timestamp":"2025-09-04T07:45:19.658Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/report, POST} route","timestamp":"2025-09-04T07:45:19.658Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/report/batch, POST} route","timestamp":"2025-09-04T07:45:19.659Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors, GET} route","timestamp":"2025-09-04T07:45:19.659Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/stats, GET} route","timestamp":"2025-09-04T07:45:19.659Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/:id, DELETE} route","timestamp":"2025-09-04T07:45:19.659Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/error, GET} route","timestamp":"2025-09-04T07:45:19.659Z"}
+{"context":"NestApplication","level":"info","message":"Nest application successfully started","timestamp":"2025-09-04T07:45:19.660Z"}
+{"context":"ErrorsController","level":"info","message":"stats called","timestamp":"2025-09-04T07:45:23.724Z"}
+{"context":"ErrorsController","level":"info","message":"report called","timestamp":"2025-09-04T07:45:27.804Z"}
+{"context":"ExceptionsHandler","level":"error","message":"Do not know how to serialize a BigInt","stack":["TypeError: Do not know how to serialize a BigInt\n    at JSON.stringify (<anonymous>)\n    at stringify (/Users/x/Desktop/workspace/monitor/node_modules/.pnpm/express@4.21.2/node_modules/express/lib/response.js:1160:12)\n    at ServerResponse.json (/Users/x/Desktop/workspace/monitor/node_modules/.pnpm/express@4.21.2/node_modules/express/lib/response.js:271:14)\n    at ExpressAdapter.reply (/Users/x/Desktop/workspace/monitor/node_modules/.pnpm/@nestjs+platform-express@10.4.20_@nestjs+common@10.4.20_class-transformer@0.5.1_class-validat_4hxcgib4tjueglkw2ln676z7o4/node_modules/@nestjs/platform-express/adapters/express-adapter.js:62:62)\n    at RouterResponseController.apply (/Users/x/Desktop/workspace/monitor/node_modules/.pnpm/@nestjs+core@10.4.20_@nestjs+common@10.4.20_class-transformer@0.5.1_class-validator@0.14.2_re_qwhbj3iwzsel4fduuyyeamql6y/node_modules/@nestjs/core/router/router-response-controller.js:15:36)\n    at /Users/x/Desktop/workspace/monitor/node_modules/.pnpm/@nestjs+core@10.4.20_@nestjs+common@10.4.20_class-transformer@0.5.1_class-validator@0.14.2_re_qwhbj3iwzsel4fduuyyeamql6y/node_modules/@nestjs/core/router/router-execution-context.js:176:48\n    at async /Users/x/Desktop/workspace/monitor/node_modules/.pnpm/@nestjs+core@10.4.20_@nestjs+common@10.4.20_class-transformer@0.5.1_class-validator@0.14.2_re_qwhbj3iwzsel4fduuyyeamql6y/node_modules/@nestjs/core/router/router-execution-context.js:47:13\n    at async /Users/x/Desktop/workspace/monitor/node_modules/.pnpm/@nestjs+core@10.4.20_@nestjs+common@10.4.20_class-transformer@0.5.1_class-validator@0.14.2_re_qwhbj3iwzsel4fduuyyeamql6y/node_modules/@nestjs/core/router/router-proxy.js:9:17"],"timestamp":"2025-09-04T07:45:27.829Z"}
+{"context":"ErrorsController","level":"info","message":"stats called","timestamp":"2025-09-04T07:46:22.147Z"}
+{"context":"ErrorsController","level":"info","message":"stats called","timestamp":"2025-09-04T07:46:23.530Z"}
+{"context":"ErrorsController","level":"info","message":"report called","timestamp":"2025-09-04T07:46:27.575Z"}
+{"context":"ExceptionsHandler","level":"error","message":"Do not know how to serialize a BigInt","stack":["TypeError: Do not know how to serialize a BigInt\n    at JSON.stringify (<anonymous>)\n    at stringify (/Users/x/Desktop/workspace/monitor/node_modules/.pnpm/express@4.21.2/node_modules/express/lib/response.js:1160:12)\n    at ServerResponse.json (/Users/x/Desktop/workspace/monitor/node_modules/.pnpm/express@4.21.2/node_modules/express/lib/response.js:271:14)\n    at ExpressAdapter.reply (/Users/x/Desktop/workspace/monitor/node_modules/.pnpm/@nestjs+platform-express@10.4.20_@nestjs+common@10.4.20_class-transformer@0.5.1_class-validat_4hxcgib4tjueglkw2ln676z7o4/node_modules/@nestjs/platform-express/adapters/express-adapter.js:62:62)\n    at RouterResponseController.apply (/Users/x/Desktop/workspace/monitor/node_modules/.pnpm/@nestjs+core@10.4.20_@nestjs+common@10.4.20_class-transformer@0.5.1_class-validator@0.14.2_re_qwhbj3iwzsel4fduuyyeamql6y/node_modules/@nestjs/core/router/router-response-controller.js:15:36)\n    at /Users/x/Desktop/workspace/monitor/node_modules/.pnpm/@nestjs+core@10.4.20_@nestjs+common@10.4.20_class-transformer@0.5.1_class-validator@0.14.2_re_qwhbj3iwzsel4fduuyyeamql6y/node_modules/@nestjs/core/router/router-execution-context.js:176:48\n    at async /Users/x/Desktop/workspace/monitor/node_modules/.pnpm/@nestjs+core@10.4.20_@nestjs+common@10.4.20_class-transformer@0.5.1_class-validator@0.14.2_re_qwhbj3iwzsel4fduuyyeamql6y/node_modules/@nestjs/core/router/router-execution-context.js:47:13\n    at async /Users/x/Desktop/workspace/monitor/node_modules/.pnpm/@nestjs+core@10.4.20_@nestjs+common@10.4.20_class-transformer@0.5.1_class-validator@0.14.2_re_qwhbj3iwzsel4fduuyyeamql6y/node_modules/@nestjs/core/router/router-proxy.js:9:17"],"timestamp":"2025-09-04T07:46:27.603Z"}
+{"context":"NestFactory","level":"info","message":"Starting Nest application...","timestamp":"2025-09-04T07:48:18.265Z"}
+{"context":"InstanceLoader","level":"info","message":"AppModule dependencies initialized","timestamp":"2025-09-04T07:48:18.275Z"}
+{"context":"InstanceLoader","level":"info","message":"ErrorsModule dependencies initialized","timestamp":"2025-09-04T07:48:18.276Z"}
+{"context":"RoutesResolver","level":"info","message":"AppController {/api/v1}:","timestamp":"2025-09-04T07:48:18.278Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1, GET} route","timestamp":"2025-09-04T07:48:18.279Z"}
+{"context":"RoutesResolver","level":"info","message":"HealthController {/api/v1/health}:","timestamp":"2025-09-04T07:48:18.279Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/health, GET} route","timestamp":"2025-09-04T07:48:18.279Z"}
+{"context":"RoutesResolver","level":"info","message":"ErrorsController {/api/v1/errors}:","timestamp":"2025-09-04T07:48:18.279Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/report, POST} route","timestamp":"2025-09-04T07:48:18.280Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/report/batch, POST} route","timestamp":"2025-09-04T07:48:18.280Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors, GET} route","timestamp":"2025-09-04T07:48:18.280Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/stats, GET} route","timestamp":"2025-09-04T07:48:18.280Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/:id, DELETE} route","timestamp":"2025-09-04T07:48:18.281Z"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/v1/errors/error, GET} route","timestamp":"2025-09-04T07:48:18.281Z"}
+{"context":"NestApplication","level":"info","message":"Nest application successfully started","timestamp":"2025-09-04T07:48:18.281Z"}
