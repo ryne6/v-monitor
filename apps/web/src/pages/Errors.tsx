@@ -1,5 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+
+declare const __APP_VERSION__: string;
+declare const __PROJECT_ID__: string;
 
 type ErrorItem = {
   id: string;
@@ -19,11 +22,21 @@ type ErrorItem = {
 
 type ErrorsResponse = { errors: ErrorItem[]; total: number };
 
+type ResolveResponse = {
+  resolvedStack: string;
+  frames: Array<{ file: string; line: number; column: number; function?: string; context?: { pre: string[]; line: string; post: string[] } }>;
+  unmapped: boolean;
+  message?: string;
+};
+
 export default function Errors() {
   const [type, setType] = useState<string>('');
   const [page, setPage] = useState(1);
   const [limit] = useState(20);
   const [selected, setSelected] = useState<ErrorItem | null>(null);
+  const [resolving, setResolving] = useState(false);
+  const [resolved, setResolved] = useState<ResolveResponse | null>(null);
+  const [showOriginal, setShowOriginal] = useState(false);
 
   const queryString = useMemo(() => {
     const p = new URLSearchParams();
@@ -36,12 +49,42 @@ export default function Errors() {
   const { data, isLoading, error } = useQuery<ErrorsResponse>({
     queryKey: ['errors', queryString],
     queryFn: async () => {
-      const res = await fetch(`/api/v1/errors?${queryString}`);
+      const res = await fetch(`http://localhost:3001/api/v1/errors?${queryString}`);
       if (!res.ok) throw new Error('Failed to fetch errors');
       return res.json();
     },
     staleTime: 5000,
   });
+
+  useEffect(() => {
+    setResolved(null);
+    setShowOriginal(false);
+    if (!selected || !selected.stack) return;
+    let aborted = false;
+    (async () => {
+      try {
+        setResolving(true);
+        const res = await fetch('http://localhost:3001/api/v1/sourcemaps/resolve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            projectId: __PROJECT_ID__,
+            version: __APP_VERSION__,
+            originalStack: selected.stack,
+            baseUrl: window.location.origin + '/',
+          }),
+        });
+        if (!res.ok) throw new Error('resolve failed');
+        const json = (await res.json()) as ResolveResponse;
+        if (!aborted) setResolved(json);
+      } catch (e) {
+        if (!aborted) setResolved({ resolvedStack: '', frames: [], unmapped: true, message: String(e) });
+      } finally {
+        if (!aborted) setResolving(false);
+      }
+    })();
+    return () => { aborted = true; };
+  }, [selected]);
 
   return (
     <div className="space-y-4">
@@ -114,7 +157,7 @@ export default function Errors() {
               ✕
             </button>
             <h3 className="text-lg font-semibold mb-3">Error Detail</h3>
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-sm max-h-[calc(70vh)] overflow-auto">
               <div><span className="text-gray-500">Time:</span> {new Date(selected.timestamp).toLocaleString()}</div>
               <div><span className="text-gray-500">Type:</span> {selected.type}</div>
               <div className="break-all"><span className="text-gray-500">Message:</span> {selected.message}</div>
@@ -131,12 +174,47 @@ export default function Errors() {
               {selected.responseStatusText && (
                 <div><span className="text-gray-500">StatusText:</span> {selected.responseStatusText}</div>
               )}
-              {selected.stack && (
+
+              <div className="mt-2 border-t pt-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-gray-700 font-medium">Stack</div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-gray-600">Show original</label>
+                    <input type="checkbox" checked={showOriginal} onChange={(e)=>setShowOriginal(e.target.checked)} />
+                  </div>
+                </div>
+                {showOriginal ? (
+                  <pre className="whitespace-pre-wrap text-xs bg-gray-50 p-2 rounded max-h-64 overflow-auto">{selected.stack || 'No stack'}</pre>
+                ) : (
+                  <div>
+                    {resolving && <div className="text-xs text-gray-500">Resolving…</div>}
+                    {!resolving && (
+                      resolved?.unmapped ? (
+                        <pre className="whitespace-pre-wrap text-xs bg-amber-50 border border-amber-200 text-amber-800 p-2 rounded max-h-64 overflow-auto">{resolved?.message || 'No frames could be mapped'}</pre>
+                      ) : (
+                        <pre className="whitespace-pre-wrap text-xs bg-gray-50 p-2 rounded max-h-64 overflow-auto">{resolved?.resolvedStack || 'No stack'}</pre>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {resolved && resolved.frames?.length > 0 && (
                 <details className="mt-2">
-                  <summary className="cursor-pointer text-gray-700">Stack</summary>
-                  <pre className="mt-1 whitespace-pre-wrap text-xs bg-gray-50 p-2 rounded">{selected.stack}</pre>
+                  <summary className="cursor-pointer text-gray-700">Frames (with context)</summary>
+                  <div className="mt-2 space-y-3">
+                    {resolved.frames.map((f, idx) => (
+                      <div key={idx} className="border rounded p-2 bg-white">
+                        <div className="text-xs text-gray-700 mb-1">{f.function || '<anonymous>'} — {f.file}:{f.line}:{f.column}</div>
+                        {f.context && (
+                          <pre className="whitespace-pre-wrap text-xs bg-gray-50 p-2 rounded">{[...f.context.pre, f.context.line, ...f.context.post].join('\n')}</pre>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </details>
               )}
+
               {selected.metadata && (
                 <details className="mt-2">
                   <summary className="cursor-pointer text-gray-700">Metadata</summary>

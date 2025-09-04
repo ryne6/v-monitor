@@ -107,6 +107,10 @@ export class ReportErrorDto {
   @IsOptional()
   @IsString()
   projectId?: string;
+
+  @IsOptional()
+  @IsString()
+  version?: string;
 }
 
 export class ReportBatchErrorDto {

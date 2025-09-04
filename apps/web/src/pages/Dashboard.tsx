@@ -14,7 +14,7 @@ export default function Dashboard() {
     queryKey: ['errors-stats'],
     queryFn: async () => {
       const params = new URLSearchParams();
-      const res = await fetch(`/api/v1/errors/stats?${params}`);
+      const res = await fetch(`http://localhost:3001/api/v1/errors/stats?${params}`);
       if (!res.ok) throw new Error('Failed to fetch stats');
       return res.json();
     },

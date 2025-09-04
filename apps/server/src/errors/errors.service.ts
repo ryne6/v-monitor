@@ -46,6 +46,7 @@ export class ErrorsService {
         sessionId: data.sessionId,
         userId: data.userId,
         projectId: data.projectId,
+        version: (data as any).version,
       },
     });
     return item;
@@ -80,6 +81,7 @@ export class ErrorsService {
         sessionId: data.sessionId,
         userId: data.userId,
         projectId: data.projectId,
+        version: (data as any).version,
       })),
     });
     return result;
@@ -157,21 +159,6 @@ export class ErrorsService {
       },
       {} as Record<string, number>,
     );
-
-    // const byUrlRows = await this.prisma.error.groupBy({
-    //   by: ['url'],
-    //   where,
-    //   _count: { _all: true },
-    //   orderBy: { _count: { _all: 'desc' } },
-    //   take: 10,
-    // });
-    // const byUrl = byUrlRows.reduce(
-    //   (acc, r) => {
-    //     acc[r.url] = r._count._all as unknown as number;
-    //     return acc;
-    //   },
-    //   {} as Record<string, number>,
-    // );
 
     const byUrlRaw = await this.prisma.$queryRawUnsafe<any[]>(
       `SELECT "url", COUNT(*)::int as count

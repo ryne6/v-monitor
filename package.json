@@ -13,6 +13,8 @@
     "build:playground": "pnpm --filter playground build",
     "build:server": "pnpm --filter @monitor/server build",
     "build:web": "pnpm --filter @monitor/web build",
+    "build:web:with-maps": "pnpm --filter @monitor/web run build:with-maps",
+    "build:web:with-maps:sudo": "sudo -E env pnpm --filter @monitor/web run build:with-maps",
     "clean": "pnpm -r clean",
     "type-check": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",

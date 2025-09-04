@@ -3,9 +3,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ErrorsModule } from './errors/errors.module';
 import { HealthController } from './health.controller';
+import { SourcemapsModule } from './sourcemaps/sourcemaps.module';
 
 @Module({
-  imports: [ErrorsModule],
+  imports: [ErrorsModule, SourcemapsModule],
   controllers: [AppController, HealthController],
   providers: [AppService],
 })

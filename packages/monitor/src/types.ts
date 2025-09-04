@@ -82,6 +82,10 @@ export interface MonitorConfig {
   // Report configuration
   report?: ReportConfig;
   
+  // Project identification
+  projectId?: string;
+  version?: string;
+  
   // Network monitoring configuration
   network?: {
     // Whether to enable network monitoring

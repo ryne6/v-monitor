@@ -37,6 +37,8 @@ export class FetchReporter extends BaseTransport {
       const payload = {
         timestamp: Date.now(),
         count: errors.length,
+        projectId: this.config.projectId,
+        version: this.config.version,
         errors: errors.map(e => this.buildPayload(e))
       };
 
@@ -88,7 +90,9 @@ export class FetchReporter extends BaseTransport {
       stack: error.stack,
       timestamp: error.timestamp,
       url: error.url,
-      userAgent: error.userAgent
+      userAgent: error.userAgent,
+      projectId: this.config.projectId,
+      version: this.config.version,
     };
   }
 }

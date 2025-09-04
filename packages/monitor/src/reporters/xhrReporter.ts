@@ -43,7 +43,8 @@ export class XHRReporter extends BaseTransport {
 
       try {
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', url, true);
+        const batchUrl = url.endsWith('/batch') ? url : (url.endsWith('/report') ? `${url}/batch` : `${url}/batch`);
+        xhr.open('POST', batchUrl, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         
         // Add custom headers
@@ -65,6 +66,8 @@ export class XHRReporter extends BaseTransport {
         const payload = {
           timestamp: Date.now(),
           count: errors.length,
+          projectId: this.config.projectId,
+          version: this.config.version,
           errors: errors.map(e => this.buildPayload(e))
         };
         
@@ -93,7 +96,9 @@ export class XHRReporter extends BaseTransport {
         responseBody: error.responseBody,
         responseHeaders: error.responseHeaders
       }),
-      ...error
+      ...error,
+      projectId: this.config.projectId,
+      version: this.config.version,
     };
   }
 }

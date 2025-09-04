@@ -24,7 +24,7 @@ export default function Test() {
   const triggerNetworkError = async () => {
     log('Trigger Network error (404 fetch)');
     try {
-      await fetch('/api/v1/__not_exists__?t=' + Date.now());
+      await fetch('http://localhost:3001/api/v1/__not_exists__?t=' + Date.now());
     } catch (e) {
       // ignore
     }
@@ -34,7 +34,7 @@ export default function Test() {
     log('Trigger Network error (404 XHR)');
     try {
       const xhr = new XMLHttpRequest();
-      xhr.open('GET', '/api/v1/__xhr_not_exists__?t=' + Date.now());
+      xhr.open('GET', 'http://localhost:3001/api/v1/__xhr_not_exists__?t=' + Date.now());
       xhr.onload = () => log('XHR onload status=' + xhr.status);
       xhr.onerror = () => log('XHR onerror');
       xhr.send();

@@ -40,5 +40,6 @@ model Error {
   sessionId          String?
   userId             String?
   projectId          String?
+  version            String?
   createdAt          DateTime          @default(now())
 }

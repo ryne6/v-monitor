@@ -20,6 +20,11 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+logs/
+
+# Sourcemaps storage
+apps/server/sourcemaps/
+**/sourcemaps/
 
 # Runtime data
 pids
