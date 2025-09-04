@@ -93,6 +93,7 @@ export class FetchReporter extends BaseTransport {
       userAgent: error.userAgent,
       projectId: this.config.projectId,
       version: this.config.version,
+      metadata: (error as any).metadata,
     };
   }
 }

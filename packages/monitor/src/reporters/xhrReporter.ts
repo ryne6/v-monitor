@@ -79,6 +79,15 @@ export class XHRReporter extends BaseTransport {
   }
 
   private buildPayload(error: ErrorInfo) {
+    // Align type with server DTO enum
+    const typeMap: Record<string, string> = {
+      js: 'JS',
+      resource: 'RESOURCE',
+      network: 'NETWORK',
+      performance: 'PERFORMANCE'
+    };
+    const mappedType = (typeMap as any)[(error as any).type] || (error as any).type;
+
     return {
       filename: error.filename,
       line: error.line,
@@ -96,9 +105,16 @@ export class XHRReporter extends BaseTransport {
         responseBody: error.responseBody,
         responseHeaders: error.responseHeaders
       }),
-      ...error,
+      // Keep core fields explicit to avoid override by spread
+      type: mappedType,
+      message: error.message,
+      stack: error.stack,
+      timestamp: error.timestamp,
+      url: error.url,
+      userAgent: error.userAgent,
       projectId: this.config.projectId,
       version: this.config.version,
+      metadata: (error as any).metadata,
     };
   }
 }
