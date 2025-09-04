@@ -1,4 +1,5 @@
 import type { PerformanceHandlerConfig } from './handlers/performanceHandler';
+import type { SessionReplayConfig } from './handlers/replayHandler';
 
 export enum MonitorErrorType {
   JS = 'js',
@@ -111,6 +112,8 @@ export interface MonitorConfig {
   };
   // Performance monitoring configuration
   performance?: PerformanceHandlerConfig;
+  // Session replay configuration
+  replay?: SessionReplayConfig;
 }
 
 // Error information interface

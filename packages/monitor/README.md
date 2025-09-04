@@ -265,6 +265,30 @@ monitor.reportError({
 });
 ```
 
+### 即时回放（仅报错时上传）
+
+SDK 在本地维护一个轻量事件缓冲（点击、输入、滚动、鼠标移动、可见性等），仅在发生错误时，把最近窗口的事件作为快照附加到错误的 `metadata.replay`，正常状态不上传。
+
+开启与配置：
+
+```ts
+import { Monitor } from '@monitor/sdk';
+
+const monitor = new Monitor({
+  report: { url: 'http://localhost:3001/api/v1/errors/report' },
+  replay: {
+    enabled: true,
+    windowMs: 15000,
+    maxEvents: 3000,
+    maxReplayBytes: 256 * 1024,
+    mousemoveThrottleMs: 50,
+    maskAllText: true,
+  },
+});
+```
+
+服务器端 `metadata` 字段会原样存储 `replay`，前端错误详情可渲染简版回放（时间轴/事件列表）。
+
 ### 自定义 Reporter
 
 ```typescript

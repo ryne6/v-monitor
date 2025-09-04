@@ -42,5 +42,7 @@
     "vite": "^7.1.2",
     "@types/node": "^20.0.0",
     "vite-plugin-dts": "^4.2.3"
+  },
+  "dependencies": {
   }
 }

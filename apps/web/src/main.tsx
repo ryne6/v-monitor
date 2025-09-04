@@ -9,6 +9,7 @@ import Stats from './pages/Stats';
 import Test from './pages/Test';
 import { getMonitor } from './sdk/monitor';
 import './styles.css';
+import './shim-rrweb';
 
 getMonitor();
 const queryClient = new QueryClient();

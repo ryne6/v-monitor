@@ -79,6 +79,8 @@ SOURCEMAP_DIR=/abs/path/to/sourcemaps
 - GET `/api/v1/errors/stats` — stats by type/hour/url
 - POST `/api/v1/sourcemaps/resolve` — resolve stack using local sourcemaps
 
+Replay note: `metadata.replay` (JSON) from SDK is persisted in `Error.metadata`.
+
 ## Logging
 
 Winston logs under `apps/server/logs/`.

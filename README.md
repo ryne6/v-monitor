@@ -82,6 +82,9 @@ cd packages/monitor
 npm run dev
 ```
 
+# 即时回放（仅报错时上传）
+- 在 SDK 中开启 `replay.enabled` 即可，仅错误发生时附带最近窗口事件快照到 `metadata.replay`，服务端 `metadata` 将原样保存；Web 详情页支持回放查看。
+
 ### Web 前端 (apps/web)
 
 ```bash

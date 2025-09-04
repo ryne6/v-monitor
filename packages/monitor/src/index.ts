@@ -21,3 +21,5 @@ export { JSErrorHandler } from './handlers/jsErrorHandler';
 export { ResourceErrorHandler } from './handlers/resourceErrorHandler';
 export { NetworkErrorHandler } from './handlers/networkErrorHandler';
 export { PerformanceHandler } from './handlers/performanceHandler';
+export { SessionReplayHandler } from './handlers/replayHandler';
+export type { SessionReplayConfig, ReplaySnapshot } from './handlers/replayHandler';

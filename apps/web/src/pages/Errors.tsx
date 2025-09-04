@@ -1,5 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { decodeReplay } from '../lib/replay';
+import RrwebFullscreen from '../components/RrwebFullscreen';
 
 declare const __APP_VERSION__: string;
 declare const __PROJECT_ID__: string;
@@ -37,6 +39,10 @@ export default function Errors() {
   const [resolving, setResolving] = useState(false);
   const [resolved, setResolved] = useState<ResolveResponse | null>(null);
   const [showOriginal, setShowOriginal] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [cursor, setCursor] = useState<number | null>(null);
+  const [rrwebReady, setRrwebReady] = useState(false);
+  const [showReplayFull, setShowReplayFull] = useState(false);
 
   const queryString = useMemo(() => {
     const p = new URLSearchParams();
@@ -59,6 +65,8 @@ export default function Errors() {
   useEffect(() => {
     setResolved(null);
     setShowOriginal(false);
+    setIsPlaying(false);
+    setCursor(null);
     if (!selected || !selected.stack) return;
     let aborted = false;
     (async () => {
@@ -85,6 +93,57 @@ export default function Errors() {
     })();
     return () => { aborted = true; };
   }, [selected]);
+
+  // simple replay ticker
+  useEffect(() => {
+    if (!selected?.metadata?.replay) return;
+    const rep = selected.metadata.replay as { startedAt: number; endedAt: number };
+    if (!rep?.startedAt || !rep?.endedAt) return;
+    let raf: number | null = null;
+    let last = performance.now();
+    const step = () => {
+      const nowTs = performance.now();
+      const dt = nowTs - last;
+      last = nowTs;
+      setCursor((prev) => {
+        const base = prev == null ? rep.startedAt : prev;
+        const next = base + dt;
+        if (next >= rep.endedAt) {
+          setIsPlaying(false);
+          return rep.endedAt;
+        }
+        return next;
+      });
+      if (isPlaying) raf = requestAnimationFrame(step);
+    };
+    if (isPlaying) {
+      last = performance.now();
+      raf = requestAnimationFrame(step);
+    }
+    return () => { if (raf) cancelAnimationFrame(raf); };
+  }, [isPlaying, selected?.metadata?.replay]);
+
+  // lazy-load rrweb player when needed (local dependency)
+  useEffect(() => {
+    const rep = selected?.metadata?.replay as any;
+    if (!rep?.rrweb) {
+      setRrwebReady(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        await import('rrweb-player/dist/style.css');
+        await import('rrweb-player');
+        if (!cancelled) setRrwebReady(true);
+      } catch {
+        if (!cancelled) setRrwebReady(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [selected?.metadata?.replay?.rrweb]);
+
+  // fullscreen handling moved into RrwebFullscreen component
 
   return (
     <div className="space-y-4">
@@ -221,9 +280,90 @@ export default function Errors() {
                   <pre className="mt-1 whitespace-pre-wrap text-xs bg-gray-50 p-2 rounded">{JSON.stringify(selected.metadata, null, 2)}</pre>
                 </details>
               )}
+
+              {selected?.metadata?.replay && (() => {
+                const rep = decodeReplay(selected.metadata.replay as any);
+                const start = rep.startedAt;
+                const end = rep.endedAt;
+                const cur = cursor == null ? end : cursor;
+                const duration = Math.max(0, end - start);
+                const percent = duration ? Math.min(100, Math.max(0, ((cur - start) / duration) * 100)) : 0;
+                const around = rep.rrweb ? [] : ((rep.events || []).filter((e: any) => Math.abs(e.t - cur) <= 1000).slice(-50));
+                return (
+                  <div className="mt-3 border-t pt-3">
+                    {rep['rrweb'] ? (
+                      <div className="flex items-center justify-between">
+                        <div className="text-gray-700 font-medium">Replay</div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            className="px-2 py-1 card"
+                            onClick={() => setShowReplayFull(true)}
+                            disabled={!rrwebReady}
+                            title={!rrwebReady ? 'Loading rrweb player…' : '全屏回放'}
+                          >全屏回放</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-gray-700 font-medium">Replay</div>
+                          <div className="flex items-center gap-2">
+                            <button className="px-2 py-1 card" onClick={() => { setIsPlaying((p)=>!p); if (cursor==null) setCursor(start); }}>{isPlaying ? 'Pause' : 'Play'}</button>
+                            <button className="px-2 py-1 card" onClick={() => { setIsPlaying(false); setCursor(start); }}>⏮</button>
+                            <button className="px-2 py-1 card" onClick={() => { setIsPlaying(false); setCursor(end); }}>⏭</button>
+                          </div>
+                        </div>
+                        <div className="mb-2">
+                          <input
+                            type="range"
+                            min={start}
+                            max={end}
+                            value={cur}
+                            onChange={(e)=>{ setIsPlaying(false); setCursor(Number(e.target.value)); }}
+                            className="w-full"
+                          />
+                          <div className="text-xs text-gray-600 mt-1">{percent.toFixed(1)}% • {new Date(cur).toLocaleTimeString()}</div>
+                        </div>
+                        <div className="border rounded p-2 bg-white max-h-40 overflow-auto">
+                          <div className="text-xs text-gray-500 mb-1">Nearby events (±1s)</div>
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="text-gray-500">
+                                <th className="text-left">t+ms</th>
+                                <th className="text-left">type</th>
+                                <th className="text-left">detail</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {around.map((ev: any, i: number) => (
+                                <tr key={i} className={Math.abs(ev.t - cur) < 50 ? 'bg-emerald-50' : ''}>
+                                  <td>{ev.t - start}</td>
+                                  <td>{ev.type}</td>
+                                  <td className="truncate max-w-[260px]">{ev.target || ev.value || `${ev.x ?? ''},${ev.y ?? ''}`}</td>
+                                </tr>
+                              ))}
+                              {around.length === 0 && (
+                                <tr><td colSpan={3} className="text-gray-400">No events around cursor</td></tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
+      )}
+
+      {showReplayFull && (
+        <RrwebFullscreen
+          open={showReplayFull}
+          onClose={() => setShowReplayFull(false)}
+          replay={selected?.metadata?.replay}
+        />
       )}
     </div>
   );

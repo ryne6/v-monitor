@@ -1,9 +1,11 @@
 import type { ErrorInfo, MonitorConfig } from './types';
+import { MonitorErrorType } from './types';
 import { JSErrorHandler } from './handlers/jsErrorHandler';
 import { ResourceErrorHandler } from './handlers/resourceErrorHandler';
 import { NetworkErrorHandler } from './handlers/networkErrorHandler';
 import { PerformanceHandler } from './handlers/performanceHandler';
 import { Reporter } from './reporters';
+import { SessionReplayHandler } from './handlers/replayHandler';
 import type { ReporterTransport } from './reporters/types';
 export * from './reporters';
 
@@ -16,6 +18,7 @@ export class Monitor {
   private resourceErrorHandler: ResourceErrorHandler;
   private networkErrorHandler: NetworkErrorHandler;
   private performanceHandler!: PerformanceHandler;
+  private replayHandler!: SessionReplayHandler;
   private reporter: Reporter | null = null;
   private config: MonitorConfig;
 
@@ -34,6 +37,11 @@ export class Monitor {
         enabled: true,
         ...config.js
       },
+      replay: {
+        enabled: true,
+        compress: true,
+        ...config.replay
+      },
       resource: {
         enabled: true,
         ...config.resource
@@ -44,7 +52,27 @@ export class Monitor {
     this.jsErrorHandler = new JSErrorHandler(this.triggerError.bind(this));
     this.resourceErrorHandler = new ResourceErrorHandler(this.triggerError.bind(this));
     this.networkErrorHandler = new NetworkErrorHandler(this.triggerError.bind(this), this.config.network);
-    this.performanceHandler = new PerformanceHandler(this.triggerError.bind(this), this.config.performance);
+    // Only enable performance monitoring on first visit (per project/version)
+    const shouldEnablePerf = (() => {
+      try {
+        if (typeof window === 'undefined') return true;
+        const storage = window.localStorage || window.sessionStorage;
+        const pid = (this.config as any).projectId || 'default';
+        const ver = (this.config as any).version || '0';
+        const key = `__monitor_perf_inited__:${pid}:${ver}`;
+        const existed = storage.getItem(key);
+        if (existed) return false;
+        storage.setItem(key, String(Date.now()));
+        return true;
+      } catch {
+        return true;
+      }
+    })();
+    this.performanceHandler = new PerformanceHandler(
+      this.triggerError.bind(this),
+      { ...this.config.performance, enabled: shouldEnablePerf }
+    );
+    this.replayHandler = new SessionReplayHandler(this.config.replay as any);
     
     // 初始化 Reporter
     if (this.config.report?.url) {
@@ -75,6 +103,18 @@ export class Monitor {
 
   // Trigger error handlers
   private triggerError(error: ErrorInfo) {
+    // attach replay snapshot only for JS errors to reduce payload size
+    try {
+      if (this.replayHandler && error?.type === MonitorErrorType.JS) {
+        const snap = this.replayHandler.snapshot();
+        if (snap) {
+          (error as any).metadata = {
+            ...(error as any).metadata,
+            replay: snap,
+          };
+        }
+      }
+    } catch {}
     this.errorHandlers.forEach(handler => {
       try {
         handler(error);
@@ -125,5 +165,6 @@ export class Monitor {
     this.resourceErrorHandler.destroy();
     this.networkErrorHandler.destroy();
     this.performanceHandler.destroy();
+    this.replayHandler?.destroy();
   }
 }
